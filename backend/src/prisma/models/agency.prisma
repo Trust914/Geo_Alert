@@ -1,0 +1,19 @@
+model Agency {
+    id                String            @id @default(cuid())
+    name              String            @unique
+    type              AgencyType
+    jurisdiction      String
+    jurisdictionLevel JurisdictionLevel @map("jurisdiction_level")
+    contactEmail      String            @map("contact_email")
+    contactPhone      String            @map("contact_phone")
+    status            AgencyStatus      @default(ACTIVE)
+    createdAt         DateTime          @default(now()) @map("created_at")
+    updatedAt         DateTime          @updatedAt @map("updated_at")
+
+    users  User[]
+    alerts Alert[]
+
+    @@index([status])
+    @@index([jurisdictionLevel])
+    @@map("agencies")
+}

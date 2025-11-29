@@ -1,0 +1,62 @@
+model State {
+  id         String                                       @id @default(cuid())
+  name       String                                       @unique
+  stateCode       String                                       @unique @map("state_code")
+  population Int?
+  boundary   Unsupported("geometry(MultiPolygon, 4326)")? // PostGIS geometry field for state boundary
+  centroid   Unsupported("geometry(Point, 4326)")? // Geographic center point for the state
+  areaKm2    Float?                                       @map("area_km2") // Area in square kilometers
+  createdAt  DateTime                                     @default(now()) @map("created_at")
+  updatedAt  DateTime                                     @updatedAt @map("updated_at")
+
+  lgas         LGA[]
+  citizens     Citizen[]
+  alertTargets AlertTarget[]
+
+  @@index([stateCode])
+  @@index([boundary], type: Gist)
+  @@map("states")
+}
+
+model LGA {
+  id         String                                       @id @default(cuid())
+  name       String
+  stateId    String                                       @map("state_id")
+  population Int?
+  boundary   Unsupported("geometry(MultiPolygon, 4326)")? // PostGIS geometry field for LGA boundary
+  centroid   Unsupported("geometry(Point, 4326)")? // Geographic center point for the LGA
+  areaKm2    Float?                                       @map("area_km2") // Area in square kilometers
+  createdAt  DateTime                                     @default(now()) @map("created_at")
+  updatedAt  DateTime                                     @updatedAt @map("updated_at")
+
+  state        State         @relation(fields: [stateId], references: [id], onDelete: Cascade)
+  wards        Ward[]
+  citizens     Citizen[]
+  alertTargets AlertTarget[]
+
+  @@unique([stateId, name])
+  @@index([stateId])
+  @@index([boundary], type: Gist)
+  @@map("lgas")
+}
+
+model Ward {
+  id         String                                       @id @default(cuid())
+  name       String
+  lgaId      String                                       @map("lga_id")
+  population Int?
+  boundary   Unsupported("geometry(MultiPolygon, 4326)")? // PostGIS geometry field for ward boundary
+  centroid   Unsupported("geometry(Point, 4326)")? // Geographic center point for the ward
+  areaKm2    Float?                                       @map("area_km2") // Area in square kilometers
+  createdAt  DateTime                                     @default(now()) @map("created_at")
+  updatedAt  DateTime                                     @updatedAt @map("updated_at")
+
+  lga          LGA           @relation(fields: [lgaId], references: [id], onDelete: Cascade)
+  citizens     Citizen[]
+  alertTargets AlertTarget[]
+
+  @@unique([lgaId, name])
+  @@index([lgaId])
+  @@index([boundary], type: Gist)
+  @@map("wards")
+}

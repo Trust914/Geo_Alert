@@ -1,0 +1,97 @@
+enum AgencyType {
+  FEDERAL
+  STATE
+  LOCAL
+}
+
+enum AgencyStatus {
+  ACTIVE
+  SUSPENDED
+  INACTIVE
+}
+
+enum UserRole {
+  ADMIN
+  COORDINATOR
+  OPERATOR
+}
+
+enum DeliveryStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  FAILED
+  RETRYING
+}
+
+enum ActionType {
+  LOGIN
+  LOGOUT
+  CREATE_ALERT
+  SEND_ALERT
+  CANCEL_ALERT
+  UPDATE_ALERT
+  CREATE_USER
+  UPDATE_USER
+  DELETE_USER
+  CREATE_AGENCY
+  UPDATE_AGENCY
+  DELETE_AGENCY
+  REGISTER_CITIZEN
+  UPDATE_CITIZEN
+}
+
+enum Language {
+  ENGLISH
+  HAUSA
+  YORUBA
+  IGBO
+  PIDGIN
+}
+
+enum AlertCategory {
+  WEATHER
+  SECURITY
+  HEALTH
+  SAFETY
+  FIRE
+  FLOOD
+  OTHER
+}
+
+enum Severity {
+  EXTREME
+  SEVERE
+  MODERATE
+  MINOR
+}
+
+enum Urgency {
+  IMMEDIATE
+  EXPECTED
+  FUTURE
+}
+
+enum AlertStatus {
+  DRAFT
+  PENDING
+  SENT
+  CANCELLED
+  EXPIRED
+}
+
+enum TargetType {
+  STATE
+  LGA
+  WARD
+  RADIUS
+  POLYGON
+  PATH
+}
+
+enum JurisdictionLevel {
+  NATIONAL
+  STATE
+  LGA
+  WARD
+}

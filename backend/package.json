@@ -1,0 +1,42 @@
+{
+  "name": "geoalert-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch --env-file=.env src/index.ts",
+    "build": "tsc && esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js --external:@prisma/client",
+    "start": "npm run build && node --trace-warnings --env-file=.env dist/index.js",
+    "prisma.generate": "npx prisma generate --schema=./src/prisma/",
+    "prisma.migrate": "npx prisma migrate dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@types/express": "^5.0.5",
+    "@types/geojson": "^7946.0.16",
+    "@types/node": "^24.10.1",
+    "@types/pg": "^8.15.6",
+    "@types/stream-json": "^1.7.8",
+    "prisma": "^7.0.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@paralleldrive/cuid2": "^3.0.4",
+    "@prisma/adapter-pg": "^7.0.1",
+    "@prisma/client": "^7.0.1",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "fs": "^0.0.1-security",
+    "geojson": "^0.5.0",
+    "http-status": "^2.1.0",
+    "ioredis": "^5.8.2",
+    "pg": "^8.16.3",
+    "rate-limit-redis": "^4.3.0",
+    "rate-limiter-flexible": "^9.0.0",
+    "stream-json": "^1.9.1"
+  }
+}

@@ -1,0 +1,43 @@
+model DeliveredAlert {
+  id               String         @id @default(cuid())
+  alertId          String         @map("alert_id")
+  citizenId        String         @map("citizen_id")
+  phoneNumber      String         @map("phone_number")
+  status           DeliveryStatus @default(QUEUED)
+  queuedAt         DateTime       @default(now()) @map("queued_at")
+  sentAt           DateTime?      @map("sent_at")
+  deliveredAt      DateTime?      @map("delivered_at")
+  failureReason    String?        @map("failure_reason")
+  retryCount       Int            @default(0) @map("retry_count")
+  gatewayMessageId String?        @map("gateway_message_id")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+
+  alert   Alert   @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  citizen Citizen @relation(fields: [citizenId], references: [id])
+
+  @@index([alertId])
+  @@index([citizenId])
+  @@index([status])
+  @@index([queuedAt])
+  @@map("deliveries")
+}
+
+model AuditLog {
+  id         String     @id @default(cuid())
+  userId     String?    @map("user_id")
+  action     ActionType
+  entityType String     @map("entity_type")
+  entityId   String     @map("entity_id")
+  changes    Json?
+  ipAddress  String?    @map("ip_address")
+  userAgent  String?    @map("user_agent")
+  timestamp  DateTime   @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([timestamp])
+  @@map("audit_logs")
+}
