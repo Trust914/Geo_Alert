@@ -1,0 +1,4 @@
+src/seed/data/states.geojson filter=lfs diff=lfs merge=lfs -text
+src/seed/data/lgas.geojson filter=lfs diff=lfs merge=lfs -text
+src/seed/data/wards.geojson filter=lfs diff=lfs merge=lfs -text
+src/seed/data/population.geojson filter=lfs diff=lfs merge=lfs -text
