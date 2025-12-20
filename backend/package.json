@@ -4,19 +4,29 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
+    "generate:population": "npx tsx --env-file=.env src/seed/population.ts",
+    "seed": "npx tsx --env-file=.env src/seed/index.ts all",
+    "seed:all": "npx tsx --env-file=.env src/seed/index.ts all",
+    "seed:states": "npx tsx --env-file=.env src/seed/index.ts state",
+    "seed:lgas": "npx tsx --env-file=.env src/seed/index.ts lga",
+    "seed:wards": "npx tsx --env-file=.env src/seed/index.ts ward",
     "dev": "tsx watch --env-file=.env src/index.ts",
-    "build": "tsc && esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js --external:@prisma/client",
+    "build": "npm run clean && esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js --external:@prisma/client",
     "start": "npm run build && node --trace-warnings --env-file=.env dist/index.js",
     "prisma.generate": "npx prisma generate --schema=./src/prisma/",
-    "prisma.migrate": "npx prisma migrate dev"
+    "prisma.migrate": "npx prisma migrate dev",
+    "clean": "rm -rf dist"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.5",
     "@types/geojson": "^7946.0.16",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.10.1",
     "@types/pg": "^8.15.6",
     "@types/stream-json": "^1.7.8",
@@ -28,15 +38,20 @@
     "@paralleldrive/cuid2": "^3.0.4",
     "@prisma/adapter-pg": "^7.0.1",
     "@prisma/client": "^7.0.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "fs": "^0.0.1-security",
     "geojson": "^0.5.0",
+    "helmet": "^8.1.0",
     "http-status": "^2.1.0",
     "ioredis": "^5.8.2",
+    "jsonwebtoken": "^9.0.3",
     "pg": "^8.16.3",
     "rate-limit-redis": "^4.3.0",
     "rate-limiter-flexible": "^9.0.0",
-    "stream-json": "^1.9.1"
+    "stream-json": "^1.9.1",
+    "winston": "^3.18.3"
   }
 }

@@ -5,3 +5,5 @@ node_modules
 src/prisma/prisma/generated
 src/prisma/migrations
 src/seed/geographic-raw-data-from-energydata_info
+logs
+package-lock.json

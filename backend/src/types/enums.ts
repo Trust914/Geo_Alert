@@ -90,3 +90,8 @@ export enum Language {
   YORUBA = 'YORUBA',
   IGBO = 'IGBO',
 }
+
+export enum UserType {
+  AGENCY = 'AGENCY',
+  PUBLIC = 'PUBLIC',
+}

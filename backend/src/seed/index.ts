@@ -1,311 +1,277 @@
 import { createId } from "@paralleldrive/cuid2";
-// import { PrismaClient } from "@prisma/client";
 import { createReadStream } from "fs";
+import * as path from "path";
 import parser from "stream-json";
 import pick from "stream-json/filters/Pick";
 import StreamArray from "stream-json/streamers/StreamArray.js";
-import type {
-  GeoFeature,
-  ProcessedBatchItem,
-} from "../../src/types/seed.types.js";
-import {
-  escapeSqlString,
-  getStateCode,
-  makeKey,
-} from "../../src/utils/seed.utils.js";
+
+import { PopulationService } from "../../src/helpers/population.seed.helper.js"; 
+import type { ProcessedBatchItem } from "../../src/types/seed.types.js";
+import { makeKey } from "../../src/utils/seed.utils.js";
 import { prisma } from "../lib/prisma.js";
 import { JurisdictionLevel } from "../types/enums.js";
+import { logger } from "../utils/logger.util.js";
+import { extractNames, isValidGeoJSON } from "../helpers/app.seed.helper.js";
+import { SEED_BATCH_SIZE, SEED_LGA_FILE_PATH, SEED_STATE_FILE_PATH, SEED_WARD_FILE_PATH } from "../config/server.config.js";
 
-// const prisma = new PrismaClient();
+
+// --- Cache object---
+const lookupCache = {
+  stateMap: null as Map<string, string> | null,
+  lgaMap: null as Map<string, string> | null,
+  lastCacheTime: 0,
+  cacheTTL: 60000, // 1 minute
+};
 
 async function getStateLookupMap(): Promise<Map<string, string>> {
+  const now = Date.now();
+  if (lookupCache.stateMap && now - lookupCache.lastCacheTime < lookupCache.cacheTTL) {
+    return lookupCache.stateMap;
+  }
   const states = await prisma.state.findMany({
     select: { name: true, id: true },
   });
-
   const map = new Map<string, string>();
   for (const state of states) {
     map.set(makeKey(state.name), state.id);
   }
+  lookupCache.stateMap = map;
+  lookupCache.lastCacheTime = now;
   return map;
 }
 
-async function getLgaLookupMap(): Promise<Map<string, string>> {
-  const lgas = await prisma.lGA.findMany({
-    select: {
-      id: true,
-      name: true,
-      state: { select: { name: true } },
-    },
+
+async function insertStatesBatch(items: ProcessedBatchItem[]) {
+  PopulationService.initialize();
+
+  const validItems = items.filter(item => {
+    if (item.geometry === "NULL" || !isValidGeoJSON(item.geometry)) {
+      logger.warn(`Skipping state "${item.name}" - invalid geometry`);
+      return false;
+    }
+    return true;
   });
-  const map = new Map<string, string>();
-  for (const lga of lgas) {
-    const key = makeKey(lga.state.name, lga.name);
-    map.set(key, lga.id);
-  }
-  return map;
+
+  if (validItems.length === 0) return;
+
+  const operations = validItems.map((item) => {
+    const geometryData = item.geometry;
+    const population = PopulationService.getStatePopulation(item.name);
+
+    return prisma.$executeRaw`
+      INSERT INTO "states" (id, name, state_code, population, boundary, centroid, area_km2, created_at, updated_at)
+      VALUES (${item.id}, ${item.name}, ${item.codeOrParentId}, ${population},
+        ST_SetSRID(ST_GeomFromGeoJSON(${geometryData}), 4326),
+        ST_PointOnSurface(ST_SetSRID(ST_GeomFromGeoJSON(${geometryData}), 4326)),
+        ST_Area(ST_SetSRID(ST_GeomFromGeoJSON(${geometryData}), 4326)::geography) / 1000000,
+        NOW(), NOW()
+      )
+      ON CONFLICT (name) DO UPDATE
+      SET state_code = EXCLUDED.state_code,
+          population = EXCLUDED.population,
+          boundary = EXCLUDED.boundary,
+          centroid = EXCLUDED.centroid,
+          area_km2 = EXCLUDED.area_km2,
+          updated_at = NOW();
+    `;
+  });
+
+  await Promise.all(operations);
 }
 
-// --- Database Operations ---
+async function insertLgasBatch(items: ProcessedBatchItem[]) {
+  PopulationService.initialize();
 
-const getGeomSql = (geomJson: string, forceMulti: boolean) => {
-  if (geomJson === "NULL") {
-    return "NULL, NULL, NULL";
-  }
-
-  const safeJson = geomJson.replace(/'/g, "''");
-  const geomFragment = `ST_SetSRID(ST_GeomFromGeoJSON('${safeJson}'), 4326)`;
-  const boundaryFunc = forceMulti ? `ST_Multi(${geomFragment})` : geomFragment;
-
-  return `
-    ${boundaryFunc},
-    ST_PointOnSurface(${geomFragment}),
-    ST_Area(${geomFragment}::geography) / 1000000
-  `;
-};
-
-async function executeSafeBatch(
-  table: "states" | "lgas" | "wards",
-  batch: ProcessedBatchItem[],
-  sqlGenerator: (items: ProcessedBatchItem[]) => string
-) {
-  if (batch.length === 0) return;
-
-  try {
-    await prisma.$executeRawUnsafe(sqlGenerator(batch));
-  } catch (batchError) {
-    console.warn(
-      `\n⚠️ Batch failed for ${table}. Retrying items one-by-one...`
-    );
-    for (const item of batch) {
-      try {
-        await prisma.$executeRawUnsafe(sqlGenerator([item]));
-      } catch (singleError: any) {
-        console.error(
-          `❌ Failed to insert ${item.name}: ${
-            singleError.message.split("\n")[0]
-          }`
-        );
-      }
+  const validItems = items.filter(item => {
+    if (item.geometry === "NULL" || !isValidGeoJSON(item.geometry)) {
+      logger.warn(`Skipping LGA "${item.name}" - invalid geometry`);
+      return false;
     }
-  }
+    return true;
+  });
+
+  if (validItems.length === 0) return;
+
+  const operations = validItems.map((item) => {
+    const geometryData = item.geometry;
+    const { stateName } = extractNames(item.properties, JurisdictionLevel.LGA);
+    const population = PopulationService.getLgaPopulation(stateName, item.name);
+
+    return prisma.$executeRaw`
+      INSERT INTO "lgas" (id, name, state_id, population, boundary, centroid, area_km2, created_at, updated_at)
+      VALUES (${item.id}, ${item.name}, ${item.codeOrParentId}, ${population},
+        ST_SetSRID(ST_GeomFromGeoJSON(${geometryData}), 4326),
+        ST_PointOnSurface(ST_SetSRID(ST_GeomFromGeoJSON(${geometryData}), 4326)),
+        ST_Area(ST_SetSRID(ST_GeomFromGeoJSON(${geometryData}), 4326)::geography) / 1000000,
+        NOW(), NOW()
+      )
+      ON CONFLICT (name, state_id) DO UPDATE
+      SET population = EXCLUDED.population,
+          boundary = EXCLUDED.boundary,
+          centroid = EXCLUDED.centroid,
+          area_km2 = EXCLUDED.area_km2,
+          updated_at = NOW();
+    `;
+  });
+
+  await Promise.all(operations);
 }
 
-const generateStateSql = (items: ProcessedBatchItem[]) => {
-  const values = items
-    .map((item) => {
-      const escapedName = escapeSqlString(item.name);
-      return `('${item.id}', '${escapedName}', '${
-        item.codeOrParentId
-      }', ${getGeomSql(item.geometry, false)}, NOW(), NOW())`;
-    })
-    .join(",");
+async function insertWardsBatch(items: ProcessedBatchItem[]) {
+  PopulationService.initialize();
 
-  return `
-    INSERT INTO "states" (id, name, state_code, boundary, centroid, area_km2, created_at, updated_at)
-    VALUES ${values}
-    ON CONFLICT (state_code) DO UPDATE
-    SET name = EXCLUDED.name, boundary = EXCLUDED.boundary, centroid = EXCLUDED.centroid, area_km2 = EXCLUDED.area_km2, updated_at = NOW()
-  `;
-};
-
-const generateLgaSql = (items: ProcessedBatchItem[]) => {
-  const values = items
-    .map((item) => {
-      const escapedName = escapeSqlString(item.name);
-      return `('${item.id}', '${escapedName}', '${
-        item.codeOrParentId
-      }', ${getGeomSql(item.geometry, false)}, NOW(), NOW())`;
-    })
-    .join(",");
-
-  return `
-    INSERT INTO "lgas" (id, name, state_id, boundary, centroid, area_km2, created_at, updated_at)
-    VALUES ${values}
-    ON CONFLICT (state_id, name) DO UPDATE
-    SET boundary = EXCLUDED.boundary, centroid = EXCLUDED.centroid, area_km2 = EXCLUDED.area_km2, updated_at = NOW()
-  `;
-};
-
-const generateWardSql = (items: ProcessedBatchItem[]) => {
-  const values = items
-    .map((item) => {
-      const escapedName = escapeSqlString(item.name);
-      return `('${item.id}', '${escapedName}', '${
-        item.codeOrParentId
-      }', ${getGeomSql(item.geometry, true)}, NOW(), NOW())`;
-    })
-    .join(",");
-
-  return `
-    INSERT INTO "wards" (id, name, lga_id, boundary, centroid, area_km2, created_at, updated_at)
-    VALUES ${values}
-    ON CONFLICT (lga_id, name) DO UPDATE
-    SET boundary = EXCLUDED.boundary, centroid = EXCLUDED.centroid, area_km2 = EXCLUDED.area_km2, updated_at = NOW()
-  `;
-};
-
-// --- Stream Processing ---
-
-async function* batchGenerator(source: AsyncIterable<any>, batchSize: number) {
-  let batch: any[] = [];
-  for await (const chunk of source) {
-    batch.push(chunk);
-    if (batch.length >= batchSize) {
-      yield batch;
-      batch = [];
+  const validItems = items.filter(item => {
+    if (item.geometry === "NULL" || !isValidGeoJSON(item.geometry)) {
+      logger.warn(`Skipping ward "${item.name}" - invalid geometry`);
+      return false;
     }
-  }
-  if (batch.length > 0) yield batch;
+    return true;
+  });
+
+  if (validItems.length === 0) return;
+
+  const operations = validItems.map((item) => {
+    const geometryData = item.geometry;
+    const { stateName, lgaName } = extractNames(item.properties, JurisdictionLevel.WARD);
+    const population = PopulationService.getWardPopulation(stateName, lgaName, item.name);
+
+    return prisma.$executeRaw`
+      INSERT INTO "wards" (id, name, lga_id, population, boundary, centroid, created_at, updated_at)
+      VALUES (${item.id}, ${item.name}, ${item.codeOrParentId}, ${population},
+        ST_SetSRID(ST_GeomFromGeoJSON(${geometryData}), 4326),
+        ST_PointOnSurface(ST_SetSRID(ST_GeomFromGeoJSON(${geometryData}), 4326)),
+        NOW(), NOW()
+      )
+      ON CONFLICT (name, lga_id) DO UPDATE
+      SET population = EXCLUDED.population,
+          boundary = EXCLUDED.boundary,
+          centroid = EXCLUDED.centroid,
+          updated_at = NOW();
+    `;
+  });
+
+  await Promise.all(operations);
 }
 
-async function processGeoFile(
+
+async function processStream(
   filePath: string,
   level: JurisdictionLevel,
-  batchSize: number
+  parentMap?: Map<string, string>
 ) {
-  console.log(`\n🚀 Processing ${level}s from ${filePath}...`);
-  const startTime = Date.now();
-  let count = 0;
+  return new Promise<void>((resolve, reject) => {
+    let batch: ProcessedBatchItem[] = [];
+    let count = 0;
 
-  // 1. Context Setup
-  let stateMap: Map<string, string> | null = null;
-  let lgaMap: Map<string, string> | null = null;
+    const pipeline = createReadStream(filePath)
+      .pipe(parser())
+      .pipe(new pick({ filter: "features" }))
+      .pipe(new StreamArray());
 
-  if (level === JurisdictionLevel.LGA) {
-    console.log("   Loading state map for fast lookup...");
-    stateMap = await getStateLookupMap();
-  } else if (level === JurisdictionLevel.WARD) {
-    console.log("   Loading LGA map (composite keys)...");
-    lgaMap = await getLgaLookupMap();
-  }
-
-  // 2. Stream Setup
-  const fileStream = createReadStream(filePath);
-  const jsonStream = fileStream
-    .pipe(parser())
-    .pipe(new pick({ filter: "features" }))
-    .pipe(new StreamArray());
-
-  // 3. Batch Processing Loop
-  for await (const rawBatch of batchGenerator(jsonStream, batchSize)) {
-    const processedBatch: ProcessedBatchItem[] = [];
-
-    for (const item of rawBatch) {
-      const feature = item.value as GeoFeature;
+    pipeline.on("data", async (data: any) => {
+      const feature = data.value;
       const props = feature.properties;
+      const { name, stateName, lgaName } = extractNames(props, level);
 
-      let geometry = "NULL"; // Default to SQL NULL string
+      if (!name) return;
 
-      if (
-        feature.geometry &&
-        feature.geometry.coordinates &&
-        feature.geometry.coordinates.length > 0
-      ) {
-        geometry = JSON.stringify(feature.geometry);
-      } else {
-        // Log warnings for missing geometry
-        console.warn(
-          `Item ${props.wardname || props.admin2Name} has no geometry.`
-        );
-      }
+      let codeOrParentId = "";
 
-      try {
-        const id = createId();
-
-        if (level === JurisdictionLevel.STATE) {
-          const name = props.admin1Name;
-          if (!name) continue;
-          try {
-            const code = getStateCode(name);
-            processedBatch.push({ id, name, codeOrParentId: code, geometry });
-          } catch (e) {
-            console.warn(`Skipping State ${name}: Code not found`);
-          }
-        } else if (level === JurisdictionLevel.LGA) {
-          const name = props.admin2Name;
-          const parentName = props.admin1Name;
-          if (!name || !parentName) continue;
-
-          const stateId = stateMap?.get(makeKey(parentName));
-          if (!stateId) {
-            console.warn(`State not found: ${parentName}`);
-            continue;
-          }
-          processedBatch.push({ id, name, codeOrParentId: stateId, geometry });
-        } else if (level === JurisdictionLevel.WARD) {
-          const name = props.wardname;
-          const lgaName = props.lganame;
-          const stateName = props.statename;
-
-          if (!name || !lgaName || !stateName) continue;
-
-          const lgaId = lgaMap?.get(makeKey(stateName, lgaName));
-
-          if (!lgaId) {
-            console.warn(`LGA not found: ${lgaName} (${stateName})`);
-            continue;
-          }
-
-          processedBatch.push({ id, name, codeOrParentId: lgaId, geometry });
-        }
-      } catch (err: any) {
-        console.error(`Error processing index ${item.key}: ${err.message}`);
-      }
-    }
-
-    // 4. Bulk Insert
-    if (processedBatch.length > 0) {
       if (level === JurisdictionLevel.STATE) {
-        await executeSafeBatch("states", processedBatch, generateStateSql);
-      } else if (level === JurisdictionLevel.LGA) {
-        await executeSafeBatch("lgas", processedBatch, generateLgaSql);
-      } else if (level === JurisdictionLevel.WARD) {
-        await executeSafeBatch("wards", processedBatch, generateWardSql);
+        codeOrParentId = props.state_code || props.code || createId();
+      } else if (level === JurisdictionLevel.LGA && parentMap) {
+        if (stateName && parentMap.has(makeKey(stateName))) {
+          codeOrParentId = parentMap.get(makeKey(stateName))!;
+        } else {
+          return;
+        }
+      } else if (level === JurisdictionLevel.WARD && parentMap) {
+        const key = makeKey(stateName, lgaName);
+        if (stateName && lgaName && parentMap.has(key)) {
+          codeOrParentId = parentMap.get(key)!;
+        } else {
+          return;
+        }
       }
 
-      count += processedBatch.length;
-      process.stdout.write(`\r   Processed ${count} records...`);
-    }
-  }
+      const id = createId();
+      const geometry = JSON.stringify(feature.geometry);
 
-  const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-  console.log(`\n✅ Finished ${level}s. Total: ${count}. Time: ${duration}s`);
+      batch.push({
+        id,
+        name,
+        codeOrParentId,
+        geometry,
+        properties: props,
+      });
+
+      if (batch.length >= SEED_BATCH_SIZE) {
+        pipeline.pause();
+        try {
+          if (level === JurisdictionLevel.STATE) await insertStatesBatch(batch);
+          if (level === JurisdictionLevel.LGA) await insertLgasBatch(batch);
+          if (level === JurisdictionLevel.WARD) await insertWardsBatch(batch);
+
+          count += batch.length;
+          process.stdout.write(`\rProcessed ${count} ${level}s...`);
+          batch = [];
+          pipeline.resume();
+        } catch (err) {
+          pipeline.destroy(err as Error);
+        }
+      }
+    });
+
+    pipeline.on("end", async () => {
+      if (batch.length > 0) {
+        if (level === JurisdictionLevel.STATE) await insertStatesBatch(batch);
+        if (level === JurisdictionLevel.LGA) await insertLgasBatch(batch);
+        if (level === JurisdictionLevel.WARD) await insertWardsBatch(batch);
+        count += batch.length;
+      }
+      logger.info(`\nFinished processing ${count} ${level}s.`);
+      resolve();
+    });
+
+    pipeline.on("error", (err: Error) => reject(err));
+  });
 }
 
-// --- Main CLI ---
 
 async function main() {
-  const args = process.argv.slice(2);
-  const command = args[0];
-  const files = args.slice(1);
+  const seedType = process.argv[2] || "all";
+  logger.info(`Starting seed process for: ${seedType}`);
+
+  const files = {
+    states: path.resolve(process.cwd(), SEED_STATE_FILE_PATH),
+    lgas: path.resolve(process.cwd(), SEED_LGA_FILE_PATH),
+    wards: path.resolve(process.cwd(), SEED_WARD_FILE_PATH),
+  };
 
   try {
-    if (command === "state") {
-      const file = files[0];
-      if (!file) throw new Error("Missing file path for state");
-      await processGeoFile(file, JurisdictionLevel.STATE, 50);
-    } else if (command === "lga") {
-      const file = files[0];
-      if (!file) throw new Error("Missing file path for lga");
-      await processGeoFile(file, JurisdictionLevel.LGA, 100);
-    } else if (command === "ward") {
-      const file = files[0];
-      if (!file) throw new Error("Missing file path for ward");
-      await processGeoFile(file, JurisdictionLevel.WARD, 100);
-    } else if (command === "all") {
-      const [stateFile, lgaFile, wardFile] = files;
-      if (!stateFile || !lgaFile || !wardFile) {
-        throw new Error("Usage: ... all <state-file> <lga-file> <ward-file>");
-      }
-      await processGeoFile(stateFile, JurisdictionLevel.STATE, 50);
-      await processGeoFile(lgaFile, JurisdictionLevel.LGA, 100);
-      await processGeoFile(wardFile, JurisdictionLevel.WARD, 100);
-    } else {
-      console.log(`Usage: npx tsx seed-geo.ts <command> <files...>`);
+    if (seedType === "all" || seedType === "state") {
+      await processStream(files.states, JurisdictionLevel.STATE);
     }
-  } catch (err) {
-    console.error("\n❌ Fatal Error:", err);
+
+    if (seedType === "all" || seedType === "lga") {
+      const stateMap = await getStateLookupMap();
+      await processStream(files.lgas, JurisdictionLevel.LGA, stateMap);
+    }
+
+    if (seedType === "all" || seedType === "ward") {
+      const lgas = await prisma.lGA.findMany({
+        select: { id: true, name: true, state: { select: { name: true } } },
+      });
+
+      const lgaMap = new Map<string, string>();
+      for (const lga of lgas) {
+        lgaMap.set(makeKey(lga.state.name, lga.name), lga.id);
+      }
+
+      await processStream(files.wards, JurisdictionLevel.WARD, lgaMap);
+    }
+  } catch (error) {
+    logger.error("Seeding failed:", { error });
     process.exit(1);
   } finally {
     await prisma.$disconnect();

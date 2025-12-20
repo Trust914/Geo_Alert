@@ -96,3 +96,27 @@ export const RATELIMITER_REDIS_DURATION = Number(
 export const RATELIMITER_REDIS_BLOCK_DURATION = Number(
   getEnvVariable("RATELIMITER_REDIS_BLOCK_DURATION")
 );
+export const SEED_BATCH_SIZE = Number(
+  checkIfDefined(getEnvVariable("SEED_BATCH_SIZE"), "SEED_BATCH_SIZE")
+);
+export const SEED_STATE_FILE_PATH = checkIfDefined(
+  getEnvVariable("SEED_STATE_FILE_PATH"),
+  "SEED_STATE_FILE_PATH"
+);  
+export const SEED_LGA_FILE_PATH = checkIfDefined(
+  getEnvVariable("SEED_LGA_FILE_PATH"),
+  "SEED_LGA_FILE_PATH"
+);
+export const SEED_WARD_FILE_PATH = checkIfDefined(
+  getEnvVariable("SEED_WARD_FILE_PATH"),
+  "SEED_WARD_FILE_PATH"
+);
+export const SEED_POPULATION_FILE_PATH = checkIfDefined(
+  getEnvVariable("SEED_POPULATION_FILE_PATH"),
+  "SEED_POPULATION_FILE_PATH"
+);
+export const SEED_CONSOLIDATED_POPULATION_FILE_PATH = checkIfDefined(
+  getEnvVariable("SEED_CONSOLIDATED_POPULATION_FILE_PATH"),
+  "SEED_CONSOLIDATED_POPULATION_FILE_PATH"
+);
+

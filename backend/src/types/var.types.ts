@@ -17,6 +17,9 @@ import type {
   IWard,
 } from "./interfaces.types";
 
+export type LogLevel = 'fatal' | 'error' | 'warn' | 'info' | 'verbose' | 'debug'
+
+
 export type AgencyCreateInput = Omit<
   IAgency,
   "_id" | "createdAt" | "updatedAt" | "status"

@@ -12,7 +12,9 @@ import {
   TargetType,
   Urgency,
   UserRole,
+  UserType,
 } from "./enums.js";
+import type { Jwt, JwtPayload } from "jsonwebtoken";
 
 export interface IGeoConfig {
   tableName: string;
@@ -245,17 +247,9 @@ export interface AuditLogWithRelations extends IAuditLog {
   user?: IUser | null;
 }
 
-// For pagination
-export interface PaginationParams {
-  page?: number;
-  limit?: number;
-  cursor?: string;
-}
-
-export interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  hasMore: boolean;
+export interface IJWTPayload extends JwtPayload {
+  userId: string;     
+  type: UserType;       // AGENCY or PUBLIC
+  agencyId?: string;    
+  role?: UserRole;   // SUPER_ADMIN, AGENCY_ADMIN,OPERARTOR, VIEWER
 }
