@@ -2,6 +2,9 @@ enum AgencyType {
   FEDERAL
   STATE
   LOCAL
+  EMERGENCY
+  HEALTH
+  SECURITY
 }
 
 enum AgencyStatus {
@@ -11,9 +14,10 @@ enum AgencyStatus {
 }
 
 enum UserRole {
-  ADMIN
-  COORDINATOR
-  OPERATOR
+  ADMIN // Full agency management
+  COORDINATOR // Alert management + coordination
+  OPERATOR // Create and send alerts
+  VIEWER // Read-only access
 }
 
 enum DeliveryStatus {
@@ -25,20 +29,86 @@ enum DeliveryStatus {
 }
 
 enum ActionType {
-  LOGIN
+  // Authentication Actions
+  LOGIN_PENDING_2FA
+  LOGIN_SUCCESS
+  LOGIN_FAILED
   LOGOUT
-  CREATE_ALERT
-  SEND_ALERT
-  CANCEL_ALERT
-  UPDATE_ALERT
-  CREATE_USER
-  UPDATE_USER
-  DELETE_USER
-  CREATE_AGENCY
-  UPDATE_AGENCY
-  DELETE_AGENCY
-  REGISTER_CITIZEN
-  UPDATE_CITIZEN
+  LOGOUT_ALL
+  TOKEN_REFRESH
+  SESSION_REVOKED
+
+  // Password Actions
+  PASSWORD_CHANGE
+  PASSWORD_CHANGE_FAILED
+  PASSWORD_RESET
+
+  // User Management Actions
+  USER_CREATED
+  USER_UPDATED
+  USER_DELETED
+  USER_ACTIVATED
+  USER_DEACTIVATED
+
+  // Agency Actions
+  AGENCY_CREATED
+  AGENCY_UPDATED
+  AGENCY_DELETED
+  AGENCY_ACTIVATED
+  AGENCY_SUSPENDED
+
+  // Alert Actions
+  ALERT_CREATED
+  ALERT_UPDATED
+  ALERT_SENT
+  ALERT_FAILED
+  ALERT_CANCELLED
+  ALERT_EXPIRED
+  ALERT_VIEWED
+
+  // Citizen Actions
+  CITIZEN_REGISTERED
+  CITIZEN_UPDATED
+  CITIZEN_OPTED_IN
+  CITIZEN_OPTED_OUT
+  CITIZEN_DELETED
+
+  // System Actions
+  SYSTEM_CONFIG_CHANGED
+  BACKUP_CREATED
+  BACKUP_RESTORED
+
+  // Security Actions
+  SUSPICIOUS_ACTIVITY
+  SECURITY_ALERT
+  UNAUTHORIZED_ACCESS_ATTEMPT
+  DATA_EXPORT
+  DATA_IMPORT
+
+  // 2FA Setup Actions
+  TWO_FA_SETUP_INITIATED
+  TWO_FA_SETUP_FAILED
+  TWO_FA_ENABLED
+  TWO_FA_DISABLED
+
+  // 2FA Verification Actions
+  TWO_FA_VERIFICATION_SUCCESS
+  TWO_FA_VERIFICATION_FAILED
+
+  // Email OTP Actions
+  EMAIL_OTP_SENT
+
+  // Backup Code Actions
+  BACKUP_CODE_USED
+  BACKUP_CODES_REGENERATED
+
+  // Action of user account
+  ACTIVATION_EMAIL_SENT
+  ACCOUNT_ACTIVATED
+  ACTIVATION_FAILED
+
+  // Other Actions
+  OTHER
 }
 
 enum Language {
@@ -50,12 +120,18 @@ enum Language {
 }
 
 enum AlertCategory {
+  GEOPHYSICAL
+  METEOROLOGICAL
   WEATHER
-  SECURITY
-  HEALTH
   SAFETY
+  SECURITY
+  RESCUE
   FIRE
-  FLOOD
+  HEALTH
+  ENVIRONMENTAL
+  TRANSPORT
+  INFRASTRUCTURE
+  CBRNE
   OTHER
 }
 
@@ -76,6 +152,8 @@ enum AlertStatus {
   DRAFT
   PENDING
   SENT
+  DELIVERED
+  FAILED
   CANCELLED
   EXPIRED
 }
@@ -94,4 +172,70 @@ enum JurisdictionLevel {
   STATE
   LGA
   WARD
+}
+
+enum LogLevel {
+  fatal
+  error
+  warn
+  info
+  verbose
+  debug
+}
+
+enum MessageType {
+  ALERT
+  UPDATE
+  CANCEL
+  ACKNOWLEDGE
+  ERROR
+}
+
+enum AlertScope {
+  PUBLIC
+  PRIVATE
+  RESTRICTED
+}
+
+enum AlertCertainty {
+  OBSERVED
+  LIKELY
+  POSSIBLE
+  UNLIKELY
+  UNKNOWN
+}
+
+enum EntityType {
+  AGENCY
+  USER
+  CITIZEN
+  ALERT
+  ALERT_TARGET
+  DELIVERED_ALERT
+  STATE
+  LGA
+  WARD
+  SYSTEM
+  REFRESH_TOKEN
+  SESSION
+}
+
+enum USSDStep {
+  START
+  MAIN_MENU
+  REGISTER_LANGUAGE
+  REGISTER_FIRSTNAME
+  REGISTER_LASTNAME
+  REGISTER_STATE
+  REGISTER_LGA
+  REGISTER_WARD
+  REGISTER_CONFIRM
+  UNSUBSCRIBE_CONFIRM
+  HELP
+}
+
+enum TwoFactorMethod {
+  NONE
+  GOOGLE_AUTHENTICATOR
+  EMAIL
 }

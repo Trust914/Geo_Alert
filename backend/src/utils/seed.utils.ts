@@ -58,5 +58,4 @@ export function normalizeName(name: string): string {
     .replace(/[^a-z0-9\-]/g, ""); // Remove any other special chars
 }
 
-export const makeKey = (...parts: string[]) =>
-  parts.map(normalizeName).join(":");
+export const makeKey = (...parts: string[]) => parts.map(normalizeName).join(":");

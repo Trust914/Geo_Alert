@@ -1,0 +1,78 @@
+version: "3.8"
+
+services:
+
+  redis:
+    container_name: redis
+    image: bitnami/redis:latest
+    ports:
+      - "6380:6379"
+    networks:
+      - backend
+    volumes:
+      - redis_data:/bitnami/redis/data
+    secrets:
+      - redis_password
+    entrypoint:
+      [
+        "/bin/sh",
+        "-c",
+        "export REDIS_PASSWORD=$(cat /run/secrets/redis_password) && exec /opt/bitnami/scripts/redis/entrypoint.sh /opt/bitnami/scripts/redis/run.sh",
+      ]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "sh",
+          "-c",
+          'redis-cli -h localhost -p 6379 -a "$(cat /run/secrets/redis_password)" ping',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  rabbitmq:
+    container_name: rabbitmq
+    build:
+      context: ./src/rabbitmq/
+      dockerfile: Dockerfile
+    secrets:
+      - rabbitmq_user
+      - rabbitmq_password
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    networks:
+      - backend
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+    environment:
+      RABBITMQ_CONFIG_FILE: /etc/rabbitmq/rabbitmq.conf
+
+secrets:
+  envs:
+    file: ./.env
+
+  redis_password:
+    file: ./secrets/redis_password
+  rabbitmq_user:
+    file: ./secrets/rabbitmq_user
+  rabbitmq_password:
+    file: ./secrets/rabbitmq_password
+
+volumes:
+  redis_data:
+  rabbitmq_data:
+
+networks:
+  backend:
+    driver: bridge
+    internal: false

@@ -4,57 +4,101 @@ import type { RedisReply } from "rate-limit-redis";
 import { RedisStore } from "rate-limit-redis";
 
 import type { NextFunction, Request, Response } from "express";
-import type {
-  IRateLimiterOptions,
-  IRateLimiterRedisOptions,
-} from "rate-limiter-flexible";
+import { ipKeyGenerator } from "express-rate-limit"; // Add this import
+import type { IRateLimiterRedisOptions } from "rate-limiter-flexible";
 import { AppError } from "../utils/error.util.js";
-import {
-  ENDPOINT_LIMIT,
-  ENDPOINT_LIMIT_TIME,
-  RATELIMITER_REDIS_BLOCK_DURATION,
-  RATELIMITER_REDIS_DURATION,
-  RATELIMITER_REDIS_MAX_POINTS,
-} from "./server.config.js";
+import { cacheConstants } from "./cache.constants.js";
+import { serverConfig } from "./server.config.js";
+
+type KeyGenerator = (req: Request) => string | Promise<string>;
+
+export const createKeyGenerator = (prefix: string): KeyGenerator => {
+  return (req: Request): string => {
+    // Priority 1: Use authenticated user ID (prevents shared IP issues)
+    if (req.user?.id) {
+      return `${prefix}:user:${req.user.id}`;
+    }
+
+    // Priority 2: Use IP address with the helper function
+    const ip = req.ip || "unknown"; // Provide a default fallback
+    const ipKey = ipKeyGenerator(ip);
+    return `${prefix}:ip:${ipKey}`;
+  };
+};
 
 export const endpointRateLimiter = (redisClient: Redis) => {
-  // express-rate-limit (with Redis as store for sensitive API routes)
   return {
-    windowMs: ENDPOINT_LIMIT_TIME * 60 * 1000, // e.g, 15 * 60 * 1000 = 15 minutes
-    limit: ENDPOINT_LIMIT, // Limit each IP to specified num of  requests per `window` (here,e.g., per 15 minutes).
+    windowMs: serverConfig.rateLimiting.endpointLimitTime,
+    limit: serverConfig.rateLimiting.endpointLimit,
     standardHeaders: true,
     legacyHeaders: true,
+
+    keyGenerator: createKeyGenerator("rl:endpoint"),
     handler: (req: Request, res: Response, next: NextFunction) => {
+      const identifier = req.user?.id ? `user ${req.user.id}` : `IP ${req.ip}`;
+
       const err = new AppError({
-        name: `RateLimitError`,
-        message: `Sensitive endpoint rate limit exceeded for IP: ${req.ip}`,
+        name: "RateLimitError",
+        message: `Too many requests from ${identifier}. Please wait 1 minute before trying again.`,
         statusCode: statusCodes.TOO_MANY_REQUESTS,
-        handler: "EndpointRateLimitConfig",
+        handler: "EndpointRateLimiter",
         isOperational: true,
       });
 
       next(err);
     },
     store: new RedisStore({
-      // Store the request counts in Redis
-      sendCommand: async (
-        ...args: Parameters<typeof redisClient.call>
-      ): Promise<RedisReply> => {
+      sendCommand: async (...args: Parameters<typeof redisClient.call>): Promise<RedisReply> => {
         const result = await redisClient.call(...args);
         return result as RedisReply;
       },
+      prefix: "rl:endpoint:",
     }),
   };
 };
 
-export const redisRateLimiterOptions = (
-  redisClient: Redis
-): IRateLimiterRedisOptions => {
+export const loginRateLimiter = (redisClient: Redis) => {
+  return {
+    windowMs: cacheConstants.ttl.MEDIUM * 1000,
+    limit: serverConfig.rateLimiting.loginMaxAttempts,
+    standardHeaders: true,
+    legacyHeaders: false,
+
+    // Use ipKeyGenerator helper for IPv6 compliance
+    keyGenerator: (req: Request): string => {
+      const ipKey = ipKeyGenerator(req.ip as string);
+      return `rl:login:ip:${ipKey}`;
+    },
+
+    skipSuccessfulRequests: true,
+
+    handler: (req: Request, res: Response, next: NextFunction) => {
+      const err = new AppError({
+        name: "LoginRateLimitError",
+        message: "Too many login attempts. Please try again in 15 minutes.",
+        statusCode: statusCodes.TOO_MANY_REQUESTS,
+        handler: "LoginRateLimiter",
+        isOperational: true,
+      });
+      next(err);
+    },
+
+    store: new RedisStore({
+      sendCommand: async (...args: Parameters<typeof redisClient.call>): Promise<RedisReply> => {
+        return (await redisClient.call(...args)) as RedisReply;
+      },
+      prefix: "rl:login:",
+    }),
+  };
+};
+
+export const redisRateLimiterOptions = (redisClient: Redis): IRateLimiterRedisOptions => {
   return {
     storeClient: redisClient,
-    points: RATELIMITER_REDIS_MAX_POINTS,
-    duration: RATELIMITER_REDIS_DURATION,
-    keyPrefix: "redis-rate-limiter-middleware",
-    blockDuration: RATELIMITER_REDIS_BLOCK_DURATION,
+    points: serverConfig.rateLimiting.redisMaxPoints,
+    duration: serverConfig.rateLimiting.redisDuration,
+    keyPrefix: "rl:ddos:",
+    blockDuration: serverConfig.rateLimiting.redisBlockDuration,
+    execEvenly: false,
   };
 };

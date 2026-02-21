@@ -7,3 +7,7 @@ src/prisma/migrations
 src/seed/geographic-raw-data-from-energydata_info
 logs
 package-lock.json
+*secret.json
+dist/
+secrets/
+!secrets/.keep #keep the folder structurer but not the file

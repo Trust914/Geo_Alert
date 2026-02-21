@@ -1,122 +1,144 @@
-import {
-  checkIfDefined,
-  chooseEnvValue,
-  getEnvVariable,
-} from "../utils/app.utils.js";
+import jwt from "jsonwebtoken";
+import { checkIfDefined, chooseEnvValue, getEnvVariable } from "../utils/env.utils.js";
 
-// App specific variables
-export const APP_NAME = checkIfDefined(getEnvVariable("APP_NAME"), "APP_NAME");
-export const PORT = checkIfDefined(getEnvVariable("PORT"), "PORT");
-export const NODE_ENV = checkIfDefined(getEnvVariable("NODE_ENV"), "NODE_ENV");
-export const IS_DEV_ENV = NODE_ENV === "development";
-export const IS_STAGING_ENV = NODE_ENV === "staging";
-export const IS_PROD_ENV = NODE_ENV === "production";
+const API_NAME = checkIfDefined(getEnvVariable("API_NAME"), "API_NAME");
+const APP_VERSION = checkIfDefined(getEnvVariable("APP_VERSION"), "APP_VERSION");
+const PORT = checkIfDefined(getEnvVariable("PORT"), "PORT");
+const NODE_ENV = checkIfDefined(getEnvVariable("NODE_ENV"), "NODE_ENV");
+const IS_DEV_ENV = NODE_ENV === "development";
+const IS_STAGING_ENV = NODE_ENV === "staging";
+const IS_PROD_ENV = NODE_ENV === "production";
+const HEALTH_MIN_RESPONSE_TIME = Number(checkIfDefined(getEnvVariable("HEALTH_MIN_RESPONSE_TIME"), "HEALTH_MIN_RESPONSE_TIME"));
+const PAGINATION_DEFAULT_LIMIT = Number(checkIfDefined(getEnvVariable("PAGINATION_DEFAULT_LIMIT"), "PAGINATION_DEFAULT_LIMIT"));
+const DEFAULT_SORT_BY = checkIfDefined(getEnvVariable("DEFAULT_SORT_BY"), "DEFAULT_SORT_BY");
+const DEFAULT_SORT_ORDER = checkIfDefined(getEnvVariable("DEFAULT_SORT_ORDER"), "DEFAULT_SORT_ORDER");
+const ALLOWED_SORT_FIELDS = ["createdAt", "updatedAt"];
+const JWT_2FA_PENDING_EXPIRY = checkIfDefined(getEnvVariable("JWT_2FA_PENDING_EXPIRY"), "JWT_2FA_PENDING_EXPIRY");
+const JWT_2FA_TOKEN_SECRET: jwt.Secret = checkIfDefined(getEnvVariable("JWT_2FA_TOKEN_SECRET"), "JWT_2FA_TOKEN_SECRET");
+const JWT_ACCESS_TOKEN_SECRET: jwt.Secret = checkIfDefined(getEnvVariable("JWT_ACCESS_TOKEN_SECRET"), "JWT_ACCESS_TOKEN_SECRET");
+const JWT_REFRESH_TOKEN_SECRET: jwt.Secret = checkIfDefined(getEnvVariable("JWT_REFRESH_TOKEN_SECRET"), "JWT_REFRESH_TOKEN_SECRET");
+const JWT_VERIFY_TOKEN_SECRET: jwt.Secret = checkIfDefined(getEnvVariable("JWT_VERIFY_TOKEN_SECRET"), "JWT_VERIFY_TOKEN_SECRET");
+const JWT_REFRESH_TOKEN_EXPIRY = checkIfDefined(getEnvVariable("JWT_REFRESH_TOKEN_EXPIRY"), "JWT_REFRESH_TOKEN_EXPIRY");
+const JWT_ACCESS_TOKEN_EXPIRY = checkIfDefined(getEnvVariable("JWT_ACCESS_TOKEN_EXPIRY"), "JWT_ACCESS_TOKEN_EXPIRY");
+const VERIFY_CODE_EXPIRY_MINS = Number(checkIfDefined(getEnvVariable("VERIFY_CODE_EXPIRY_MINS"), "VERIFY_CODE_EXPIRY_MINS"));
+const REFRESH_TOKEN_EXPIRY_DAYS = Number(checkIfDefined(getEnvVariable("REFRESH_TOKEN_EXPIRY_DAYS"), "REFRESH_TOKEN_EXPIRY_DAYS"));
 
-export const PAGINATION_DEFAULT_LIMIT = Number(
-  checkIfDefined(
-    getEnvVariable("PAGINATION_DEFAULT_LIMIT"),
-    "PAGINATION_DEFAULT_LIMIT"
-  )
-);
-export const DEFAULT_SORT_BY = checkIfDefined(
-  getEnvVariable("DEFAULT_SORT_BY"),
-  "DEFAULT_SORT_BY"
-);
-export const ALLOWED_SORT_FIELDS = ["createdAt", "updatedAt"];
-export const CACHE_SECS = Number(
-  checkIfDefined(getEnvVariable("CACHE_SECS"), "CACHE_SECS")
-);
-// logger.debug("config max age", {AUTH_COOKIE_MAX_AGE})
+const LOCALHOST_DEV = checkIfDefined(getEnvVariable("LOCALHOST_DEV"), "LOCALHOST_DEV");
+const LOCALHOST_PROD = checkIfDefined(getEnvVariable("LOCALHOST_PROD"), "LOCALHOST_PROD");
+const LOCALHOST = chooseEnvValue(LOCALHOST_DEV, LOCALHOST_PROD);
 
-export const JWT_ACCESS_TOKEN_SECRET = checkIfDefined(
-  getEnvVariable("JWT_ACCESS_TOKEN_SECRET"),
-  "JWT_ACCESS_TOKEN_SECRET"
-);
-export const JWT_REFRESH_TOKEN_SECRET = checkIfDefined(
-  getEnvVariable("JWT_REFRESH_TOKEN_SECRET"),
-  "JWT_REFRESH_TOKEN_SECRET"
-);
-export const JWT_VERIFY_TOKEN_SECRET = checkIfDefined(
-  getEnvVariable("JWT_VERIFY_TOKEN_SECRET"),
-  "JWT_VERIFY_TOKEN_SECRET"
-);
-export const JWT_REFRESH_TOKEN_EXPIRY = checkIfDefined(
-  getEnvVariable("JWT_REFRESH_TOKEN_EXPIRY"),
-  "JWT_REFRESH_TOKEN_EXPIRY"
-);
-export const JWT_ACCESS_TOKEN_EXPIRY = checkIfDefined(
-  getEnvVariable("JWT_ACCESS_TOKEN_EXPIRY"),
-  "JWT_ACCESS_TOKEN_EXPIRY"
-);
-export const VERIFY_CODE_EXPIRY_MINS = Number(
-  checkIfDefined(
-    getEnvVariable("VERIFY_CODE_EXPIRY_MINS"),
-    "VERIFY_CODE_EXPIRY_MINS"
-  )
-);
-export const REFRESH_TOKEN_EXPIRY_DAYS = Number(
-  checkIfDefined(
-    getEnvVariable("REFRESH_TOKEN_EXPIRY_DAYS"),
-    "REFRESH_TOKEN_EXPIRY_DAYS"
-  )
-);
-export const AUTH_COOKIE_MAX_AGE = Number(
-  checkIfDefined(getEnvVariable("AUTH_COOKIE_MAX_AGE"), "AUTH_COOKIE_MAX_AGE")
-);
-const LOCALHOST_DEV = checkIfDefined(
-  getEnvVariable("LOCALHOST_DEV"),
-  "LOCALHOST_DEV"
-);
-const LOCALHOST_PROD = checkIfDefined(
-  getEnvVariable("LOCALHOST_PROD"),
-  "LOCALHOST_PROD"
-);
-export const LOCALHOST = chooseEnvValue(LOCALHOST_DEV, LOCALHOST_PROD);
+const FRONT_END_DOMAIN = checkIfDefined(getEnvVariable("FRONT_END_DOMAIN"), "FRONT_END_DOMAIN");
+const CORS_ALLOWED_URLS = [`http://${LOCALHOST}:${PORT}`, FRONT_END_DOMAIN];
 
-// CORS Configuration
-export const FRONT_END_DOMAIN = checkIfDefined(
-  getEnvVariable("FRONT_END_DOMAIN"),
-  "FRONT_END_DOMAIN"
-);
-export const CORS_ALLOWED_URLS = [
-  `http://${LOCALHOST}:${PORT}`,
-  FRONT_END_DOMAIN,
-];
+const ENDPOINT_LIMIT = Number(getEnvVariable("ENDPOINT_LIMIT"));
+const ENDPOINT_LIMIT_TIME = Number(getEnvVariable("ENDPOINT_LIMIT_TIME"));
+const RATELIMITER_REDIS_MAX_POINTS = Number(getEnvVariable("RATELIMITER_REDIS_MAX_POINTS"));
+const RATELIMITER_REDIS_DURATION = Number(getEnvVariable("RATELIMITER_REDIS_DURATION"));
+const RATELIMITER_REDIS_BLOCK_DURATION = Number(getEnvVariable("RATELIMITER_REDIS_BLOCK_DURATION"));
+const SEED_BATCH_SIZE = Number(checkIfDefined(getEnvVariable("SEED_BATCH_SIZE"), "SEED_BATCH_SIZE"));
+const SEED_STATE_FILE_PATH = checkIfDefined(getEnvVariable("SEED_STATE_FILE_PATH"), "SEED_STATE_FILE_PATH");
+const SEED_LGA_FILE_PATH = checkIfDefined(getEnvVariable("SEED_LGA_FILE_PATH"), "SEED_LGA_FILE_PATH");
+const SEED_WARD_FILE_PATH = checkIfDefined(getEnvVariable("SEED_WARD_FILE_PATH"), "SEED_WARD_FILE_PATH");
+const SEED_POPULATION_FILE_PATH = checkIfDefined(getEnvVariable("SEED_POPULATION_FILE_PATH"), "SEED_POPULATION_FILE_PATH");
+const SEED_CONSOLIDATED_POPULATION_FILE_PATH = checkIfDefined(getEnvVariable("SEED_CONSOLIDATED_POPULATION_FILE_PATH"), "SEED_CONSOLIDATED_POPULATION_FILE_PATH");
+const SALT_ROUNDS = Number(checkIfDefined(getEnvVariable("SALT_ROUNDS"), "SALT_ROUNDS"));
+const PASSWORD_MIN_LENGTH = Number(checkIfDefined(getEnvVariable("PASSWORD_MIN_LENGTH"), "PASSWORD_MIN_LENGTH"));
+const NEMA_CONTACT_EMAIL = checkIfDefined(getEnvVariable("NEMA_CONTACT_EMAIL"), "NEMA_CONTACT_EMAIL");
+const NEMA_CONTACT_NUMBER = checkIfDefined(getEnvVariable("NEMA_CONTACT_NUMBER"), "NEMA_CONTACT_NUMBER");
+const LOGIN_MAX_ATTEMPTS = Number(checkIfDefined(getEnvVariable("LOGIN_MAX_ATTEMPTS"), "LOGIN_MAX_ATTEMPTS"));
+const MAX_LOG_FILE = Number(checkIfDefined(getEnvVariable("MAX_LOG_FILE"), "MAX_LOG_FILE"));
+const MAX_LOG_FILE_SIZE = Number(checkIfDefined(getEnvVariable("MAX_LOG_FILE_SIZE"), "MAX_LOG_FILE_SIZE"));
+const MAX_BATCH_LOG_FILE = Number(checkIfDefined(getEnvVariable("MAX_BATCH_LOG_FILE"), "MAX_BATCH_LOG_FILE"));
+const MAX_BATCH_LOG_SIZE = Number(checkIfDefined(getEnvVariable("MAX_BATCH_LOG_SIZE"), "MAX_BATCH_LOG_SIZE"));
+const DELIVERY_ALERT_MAX_RETRY = Number(checkIfDefined(getEnvVariable("DELIVERY_ALERT_MAX_RETRY"), "DELIVERY_ALERT_MAX_RETRY"));
 
-export const ENDPOINT_LIMIT = Number(getEnvVariable("ENDPOINT_LIMIT"));
-export const ENDPOINT_LIMIT_TIME = Number(
-  getEnvVariable("ENDPOINT_LIMIT_TIME")
-);
-export const RATELIMITER_REDIS_MAX_POINTS = Number(
-  getEnvVariable("RATELIMITER_REDIS_MAX_POINTS")
-);
-export const RATELIMITER_REDIS_DURATION = Number(
-  getEnvVariable("RATELIMITER_REDIS_DURATION")
-);
-export const RATELIMITER_REDIS_BLOCK_DURATION = Number(
-  getEnvVariable("RATELIMITER_REDIS_BLOCK_DURATION")
-);
-export const SEED_BATCH_SIZE = Number(
-  checkIfDefined(getEnvVariable("SEED_BATCH_SIZE"), "SEED_BATCH_SIZE")
-);
-export const SEED_STATE_FILE_PATH = checkIfDefined(
-  getEnvVariable("SEED_STATE_FILE_PATH"),
-  "SEED_STATE_FILE_PATH"
-);  
-export const SEED_LGA_FILE_PATH = checkIfDefined(
-  getEnvVariable("SEED_LGA_FILE_PATH"),
-  "SEED_LGA_FILE_PATH"
-);
-export const SEED_WARD_FILE_PATH = checkIfDefined(
-  getEnvVariable("SEED_WARD_FILE_PATH"),
-  "SEED_WARD_FILE_PATH"
-);
-export const SEED_POPULATION_FILE_PATH = checkIfDefined(
-  getEnvVariable("SEED_POPULATION_FILE_PATH"),
-  "SEED_POPULATION_FILE_PATH"
-);
-export const SEED_CONSOLIDATED_POPULATION_FILE_PATH = checkIfDefined(
-  getEnvVariable("SEED_CONSOLIDATED_POPULATION_FILE_PATH"),
-  "SEED_CONSOLIDATED_POPULATION_FILE_PATH"
-);
+const TWO_FACTOR_ENCRYPTION_KEY = checkIfDefined(getEnvVariable("TWO_FACTOR_ENCRYPTION_KEY"), "TWO_FACTOR_ENCRYPTION_KEY");
+const IV_LENGTH = Number(checkIfDefined(getEnvVariable("IV_LENGTH"), "IV_LENGTH"));
+const CYPHER_ALGORITHM = checkIfDefined(getEnvVariable("CYPHER_ALGORITHM"), "CYPHER_ALGORITHM");
+const DEFAULT_PASSWORD_LENGTH = Number(checkIfDefined(getEnvVariable("DEFAULT_PASSWORD_LENGTH"), "DEFAULT_PASSWORD_LENGTH"));
+const SYSTEM_SECRET_BYTES_LENGTH = Number(checkIfDefined(getEnvVariable("SYSTEM_SECRET_BYTES_LENGTH"), "SYSTEM_SECRET_BYTES_LENGTH"));
 
+export const serverConfig = {
+  app: {
+    name: API_NAME,
+    version: APP_VERSION,
+    port: PORT,
+    environment: NODE_ENV,
+    isDev: IS_DEV_ENV,
+    isStaging: IS_STAGING_ENV,
+    isProd: IS_PROD_ENV,
+  },
+
+  cors: {
+    allowedUrls: CORS_ALLOWED_URLS,
+    frontendDomain: FRONT_END_DOMAIN,
+    localhost: LOCALHOST,
+  },
+
+  pagination: {
+    defaultLimit: PAGINATION_DEFAULT_LIMIT,
+    defaultSortBy: DEFAULT_SORT_BY,
+    defaultSortOrder: DEFAULT_SORT_ORDER,
+    allowedSortFields: ALLOWED_SORT_FIELDS,
+  },
+
+  jwt: {
+    accessTokenSecret: JWT_ACCESS_TOKEN_SECRET,
+    refreshTokenSecret: JWT_REFRESH_TOKEN_SECRET,
+    twoFactorTokenSecret: JWT_2FA_TOKEN_SECRET,
+    verifyTokenSecret: JWT_VERIFY_TOKEN_SECRET,
+    accessTokenExpiry: JWT_ACCESS_TOKEN_EXPIRY,
+    refreshTokenExpiry: JWT_REFRESH_TOKEN_EXPIRY,
+    twoFactorPendingExpiry: JWT_2FA_PENDING_EXPIRY,
+    verifyCodeExpiryMins: VERIFY_CODE_EXPIRY_MINS,
+    refreshTokenExpiryDays: REFRESH_TOKEN_EXPIRY_DAYS,
+  },
+
+  rateLimiting: {
+    endpointLimit: ENDPOINT_LIMIT,
+    endpointLimitTime: ENDPOINT_LIMIT_TIME,
+    redisMaxPoints: RATELIMITER_REDIS_MAX_POINTS,
+    redisDuration: RATELIMITER_REDIS_DURATION,
+    redisBlockDuration: RATELIMITER_REDIS_BLOCK_DURATION,
+    loginMaxAttempts: LOGIN_MAX_ATTEMPTS,
+  },
+
+  seeding: {
+    batchSize: SEED_BATCH_SIZE,
+    stateFilePath: SEED_STATE_FILE_PATH,
+    lgaFilePath: SEED_LGA_FILE_PATH,
+    wardFilePath: SEED_WARD_FILE_PATH,
+    populationFilePath: SEED_POPULATION_FILE_PATH,
+    consolidatedPopulationFilePath: SEED_CONSOLIDATED_POPULATION_FILE_PATH,
+  },
+
+  security: {
+    passwordMinLength: PASSWORD_MIN_LENGTH,
+    saltRounds: SALT_ROUNDS,
+    defaultPasswordLength: DEFAULT_PASSWORD_LENGTH,
+    systemSecretBytesLength: SYSTEM_SECRET_BYTES_LENGTH,
+  },
+
+  encryption: {
+    twoFactorKey: TWO_FACTOR_ENCRYPTION_KEY,
+    ivLength: IV_LENGTH,
+    cipherAlgorithm: CYPHER_ALGORITHM,
+  },
+
+  monitoring: {
+    healthMinResponseTime: HEALTH_MIN_RESPONSE_TIME,
+    maxLogFile: MAX_LOG_FILE,
+    maxLogFileSize: MAX_LOG_FILE_SIZE,
+    maxBatchLogFile: MAX_BATCH_LOG_FILE,
+    maxBatchLogSize: MAX_BATCH_LOG_SIZE,
+  },
+
+  contacts: {
+    nemaEmail: NEMA_CONTACT_EMAIL,
+    nemaNumber: NEMA_CONTACT_NUMBER,
+  },
+
+  delivery: {
+    maxRetry: DELIVERY_ALERT_MAX_RETRY,
+  },
+};

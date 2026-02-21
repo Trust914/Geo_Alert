@@ -1,7 +1,7 @@
 model State {
-  id         String                                       @id @default(cuid())
+  id         String                                       @id @default(cuid(2))
   name       String                                       @unique
-  stateCode       String                                       @unique @map("state_code")
+  stateCode  String                                       @unique @map("state_code")
   population Int?
   boundary   Unsupported("geometry(MultiPolygon, 4326)")? // PostGIS geometry field for state boundary
   centroid   Unsupported("geometry(Point, 4326)")? // Geographic center point for the state
@@ -19,7 +19,7 @@ model State {
 }
 
 model LGA {
-  id         String                                       @id @default(cuid())
+  id         String                                       @id @default(cuid(2))
   name       String
   stateId    String                                       @map("state_id")
   population Int?
@@ -41,7 +41,7 @@ model LGA {
 }
 
 model Ward {
-  id         String                                       @id @default(cuid())
+  id         String                                       @id @default(cuid(2))
   name       String
   lgaId      String                                       @map("lga_id")
   population Int?

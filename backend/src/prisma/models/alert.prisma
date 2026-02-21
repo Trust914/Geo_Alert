@@ -1,63 +1,86 @@
 model Alert {
-    id               String                                       @id @default(cuid())
-    agencyId         String                                       @map("agency_id")
-    createdByUserId  String                                       @map("created_by_user_id")
-    category         AlertCategory
-    severity         Severity
-    urgency          Urgency
-    headline         String
-    description      String                                       @db.Text
-    instruction      String?                                      @db.Text
-    capXml           String                                       @map("cap_xml") @db.Text
-    status           AlertStatus                                  @default(DRAFT)
-    affectedArea     Unsupported("geometry(MultiPolygon, 4326)")? @map("affected_area") // Geographic area affected by the alert (optional)
-    incidentLocation Unsupported("geometry(Point, 4326)")?        @map("incident_location") // Incident location point
-    createdAt        DateTime                                     @default(now()) @map("created_at")
-    sentAt           DateTime?                                    @map("sent_at")
-    expiresAt        DateTime?                                    @map("expires_at")
-    updatedAt        DateTime                                     @updatedAt @map("updated_at")
+  id       String @id @default(cuid(2))
+  agencyId String @map("agency_id")
+  agency   Agency @relation(fields: [agencyId], references: [id])
 
-    agency     Agency        @relation(fields: [agencyId], references: [id])
-    createdBy  User          @relation(fields: [createdByUserId], references: [id])
-    targets    AlertTarget[]
-    deliveries DeliveredAlert[]
+  // Creator (Must exist, enforced by NoAction)
+  createdByUserId String   @map("created_by_user_id")
+  createdBy       User     @relation(fields: [createdByUserId], references: [id], onDelete: NoAction)
+  createdAt       DateTime @default(now()) @map("created_at")
 
-    @@index([agencyId])
-    @@index([createdByUserId])
-    @@index([status])
-    @@index([category])
-    @@index([createdAt])
-    @@index([affectedArea], type: Gist)
-    @@index([incidentLocation], type: Gist)
-    @@map("alerts")
+  // --- NEW: SENDING TRACKING ---
+  sentByUserId    String?   @map("sent_by_user_id")
+  sentBy          User?     @relation("AlertSender", fields: [sentByUserId], references: [id])
+  sentAt          DateTime? @map("sent_at")
+
+  // --- NEW: CANCELLATION TRACKING ---
+  cancelledByUserId String?   @map("cancelled_by_user_id")
+  cancelledBy       User?     @relation("AlertCanceller", fields: [cancelledByUserId], references: [id])
+  cancelledAt       DateTime? @map("cancelled_at")
+  cancelReason      String?   @map("cancel_reason") @db.Text
+
+  category    AlertCategory
+  severity    Severity
+  urgency     Urgency
+  headline    String
+  description String        @db.Text
+  instruction String?       @db.Text
+  capXml      String        @map("cap_xml") @db.Text
+
+  status       AlertStatus @default(DRAFT)
+
+  // Geospatial Data
+  affectedArea     Unsupported("geometry(MultiPolygon, 4326)")? @map("affected_area")
+  incidentLocation Unsupported("geometry(Point, 4326)")?        @map("incident_location")
+
+  // sentAt    DateTime? @map("sent_at")
+  expiresAt DateTime? @map("expires_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  targets    AlertTarget[]
+  deliveries DeliveredAlert[]
+
+  @@index([agencyId])
+  @@index([createdByUserId])
+  @@index([status])
+  @@index([category])
+  @@index([createdAt])
+  @@index([affectedArea], type: Gist)
+  @@index([incidentLocation], type: Gist)
+  @@map("alerts")
 }
 
 model AlertTarget {
-    id                  String                                     @id @default(cuid())
-    alertId             String                                     @map("alert_id")
-    targetType          TargetType                                 @map("target_type")
-    stateId             String?                                    @map("state_id")
-    lgaId               String?                                    @map("lga_id")
-    wardId              String?                                    @map("ward_id") // For radius-based targeting (meters)
-    radiusMeters        Int?                                       @map("radius_meters")
-    centerPoint         Unsupported("geometry(Point, 4326)")?      @map("center_point") // Center point for radius-based targeting
-    targetPolygon       Unsupported("geometry(Polygon, 4326)")?    @map("target_polygon") // Custom polygon for irregular target areas
-    targetPath          Unsupported("geometry(LineString, 4326)")? @map("target_path") // Path/corridor for moving threats (storms, fleeing criminals)
-    pathBufferMeters    Int?                                       @map("path_buffer_meters") // Buffer width for path-based targeting (meters)
-    estimatedRecipients Int?                                       @map("estimated_recipients")
-    createdAt           DateTime                                   @default(now()) @map("created_at")
+  id      String @id @default(cuid(2))
+  alertId String @map("alert_id")
+  alert   Alert  @relation(fields: [alertId], references: [id], onDelete: Cascade)
 
-    alert Alert  @relation(fields: [alertId], references: [id], onDelete: Cascade)
-    state State? @relation(fields: [stateId], references: [id])
-    lga   LGA?   @relation(fields: [lgaId], references: [id])
-    ward  Ward?  @relation(fields: [wardId], references: [id])
+  targetType TargetType @map("target_type")
 
-    @@index([alertId])
-    @@index([stateId])
-    @@index([lgaId])
-    @@index([wardId])
-    @@index([centerPoint], type: Gist)
-    @@index([targetPolygon], type: Gist)
-    @@index([targetPath], type: Gist)
-    @@map("alert_targets")
+  // Targeted Areas
+  stateId String? @map("state_id")
+  state   State?  @relation(fields: [stateId], references: [id])
+  lgaId   String? @map("lga_id")
+  lga     LGA?    @relation(fields: [lgaId], references: [id])
+  wardId  String? @map("ward_id")
+  ward    Ward?   @relation(fields: [wardId], references: [id])
+
+  // Advanced Targeting
+  radiusMeters     Int?                                       @map("radius_meters")
+  centerPoint      Unsupported("geometry(Point, 4326)")?      @map("center_point")
+  targetPolygon    Unsupported("geometry(Polygon, 4326)")?    @map("target_polygon")
+  targetPath       Unsupported("geometry(LineString, 4326)")? @map("target_path")
+  pathBufferMeters Int?                                       @map("path_buffer_meters")
+
+  estimatedRecipients Int?     @map("estimated_recipients")
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  @@index([alertId])
+  @@index([stateId])
+  @@index([lgaId])
+  @@index([wardId])
+  @@index([centerPoint], type: Gist)
+  @@index([targetPolygon], type: Gist)
+  @@index([targetPath], type: Gist)
+  @@map("alert_targets")
 }

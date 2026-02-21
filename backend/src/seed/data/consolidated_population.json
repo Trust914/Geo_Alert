@@ -462,7 +462,7 @@
         ]
       },
       {
-        "lga": "Isiukwuato",
+        "lga": "Isuikwuato",
         "population": 184628,
         "wards": [
           {
@@ -536,7 +536,7 @@
         ]
       },
       {
-        "lga": "Obi Ngwa",
+        "lga": "Obi Nwga",
         "population": 448962,
         "wards": [
           {
@@ -2286,7 +2286,7 @@
         ]
       },
       {
-        "lga": "Esit-Eket",
+        "lga": "Esit Eket",
         "population": 46618,
         "wards": [
           {
@@ -5314,7 +5314,7 @@
         ]
       },
       {
-        "lga": "Dambam",
+        "lga": "Damban",
         "population": 181045,
         "wards": [
           {
@@ -9792,7 +9792,7 @@
         ]
       },
       {
-        "lga": "Bekwara",
+        "lga": "Bekwarra",
         "population": 205359,
         "wards": [
           {
@@ -13064,7 +13064,7 @@
         ]
       },
       {
-        "lga": "Igueben",
+        "lga": "Iguegben",
         "population": 52354,
         "wards": [
           {
@@ -13812,7 +13812,7 @@
         ]
       },
       {
-        "lga": "Aiyekire (Gbonyin)",
+        "lga": "Gbonyin",
         "population": 89309,
         "wards": [
           {
@@ -15458,7 +15458,7 @@
     ]
   },
   {
-    "state": "Federal Capital Territory",
+    "state": "Fct",
     "population": 3755076,
     "lgas": [
       {
@@ -15692,7 +15692,7 @@
         ]
       },
       {
-        "lga": "Abuja Municipal Area Council",
+        "lga": "Municipal Area Council",
         "population": 1879669,
         "wards": [
           {
@@ -16908,7 +16908,7 @@
         ]
       },
       {
-        "lga": "Mbaitoli",
+        "lga": "Mbatoli",
         "population": 407380,
         "wards": [
           {
@@ -17932,11 +17932,11 @@
         ]
       },
       {
-        "lga": "Birni Kudu",
+        "lga": "Birnin Kudu",
         "population": 480630,
         "wards": [
           {
-            "ward": "Birni Kudu",
+            "ward": "Birnin Kudu",
             "population": 51113
           },
           {
@@ -17982,7 +17982,7 @@
         ]
       },
       {
-        "lga": "Biriniwa",
+        "lga": "Birniwa",
         "population": 191985,
         "wards": [
           {
@@ -19156,7 +19156,7 @@
     "population": 8368128,
     "lgas": [
       {
-        "lga": "Birnin-Gwari",
+        "lga": "Birnin Gwari",
         "population": 424568,
         "wards": [
           {
@@ -21020,7 +21020,7 @@
         ]
       },
       {
-        "lga": "Garun Mallam",
+        "lga": "Garum Mallam",
         "population": 145667,
         "wards": [
           {
@@ -29254,7 +29254,7 @@
         ]
       },
       {
-        "lga": "Nasarawa-Eggon",
+        "lga": "Nasarawa Egon",
         "population": 104577,
         "wards": [
           {
@@ -32724,7 +32724,7 @@
     "population": 4636141,
     "lgas": [
       {
-        "lga": "Atakumosa East",
+        "lga": "Atakunmosa East",
         "population": 55668,
         "wards": [
           {
@@ -32770,7 +32770,7 @@
         ]
       },
       {
-        "lga": "Atakumosa West",
+        "lga": "Atakunmosa West",
         "population": 82279,
         "wards": [
           {
@@ -32820,7 +32820,7 @@
         ]
       },
       {
-        "lga": "Aiyedaade",
+        "lga": "Ayedade",
         "population": 165330,
         "wards": [
           {
@@ -32870,7 +32870,7 @@
         ]
       },
       {
-        "lga": "Aiyedire",
+        "lga": "Ayedire",
         "population": 82959,
         "wards": [
           {
@@ -35830,7 +35830,7 @@
     "population": 3530505,
     "lgas": [
       {
-        "lga": "Barikin Ladi",
+        "lga": "Barkin Ladi",
         "population": 161469,
         "wards": [
           {
@@ -37720,7 +37720,7 @@
         ]
       },
       {
-        "lga": "Emohua",
+        "lga": "Emuoha",
         "population": 210000,
         "wards": [
           {
@@ -38078,7 +38078,7 @@
         ]
       },
       {
-        "lga": "Obio-Akpor",
+        "lga": "Obio/Akpor",
         "population": 1349186,
         "wards": [
           {
@@ -39566,7 +39566,7 @@
         ]
       },
       {
-        "lga": "Wamako",
+        "lga": "Wamakko",
         "population": 484417,
         "wards": [
           {

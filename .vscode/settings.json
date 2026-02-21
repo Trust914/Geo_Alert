@@ -5,5 +5,11 @@
     "editor.defaultFormatter": "Prisma.prisma",
     "editor.formatOnSave": true
   },
-  
+  "css.lint.unknownAtRules": "ignore",
+  "scss.lint.unknownAtRules": "ignore",
+  "less.lint.unknownAtRules": "ignore",
+  "css.customData": [".vscode/css_custom_data.json"],
+  "prettier.printWidth": 300,
+  "files.trimFinalNewlines": true,
+  "files.trimTrailingWhitespace": true
 }

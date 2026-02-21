@@ -1,19 +1,27 @@
 model Agency {
-    id                String            @id @default(cuid())
-    name              String            @unique
-    type              AgencyType
-    jurisdiction      String
-    jurisdictionLevel JurisdictionLevel @map("jurisdiction_level")
-    contactEmail      String            @map("contact_email")
-    contactPhone      String            @map("contact_phone")
-    status            AgencyStatus      @default(ACTIVE)
-    createdAt         DateTime          @default(now()) @map("created_at")
-    updatedAt         DateTime          @updatedAt @map("updated_at")
+  id                String            @id @default(cuid(2))
+  name              String            @unique
+  type              AgencyType
+  jurisdiction      String
+  jurisdictionLevel JurisdictionLevel @map("jurisdiction_level")
+  contactEmail      String            @map("contact_email")
+  contactPhone      String            @map("contact_phone")
+  status            AgencyStatus      @default(ACTIVE)
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
 
-    users  User[]
-    alerts Alert[]
+  // Creator Relation (Optional to allow System Agency creation)
+  createdById String? @map("created_by_id")
+  createdBy   User?   @relation("AgencyCreator", fields: [createdById], references: [id], onDelete: NoAction)
 
-    @@index([status])
-    @@index([jurisdictionLevel])
-    @@map("agencies")
+  // Users belonging to this agency
+  users User[]
+
+  // Alerts created by this agency
+  alerts Alert[]
+
+  @@index([status])
+  @@index([jurisdictionLevel])
+  @@index([createdById])
+  @@map("agencies")
 }

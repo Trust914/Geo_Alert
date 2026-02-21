@@ -1,25 +1,21 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import type { GeoJSON, LGAOutput, StateOutput, WardOutput,  } from '../types/seed.types.js';
-import { logger } from '../utils/logger.util.js';
-import { SEED_CONSOLIDATED_POPULATION_FILE_PATH, SEED_POPULATION_FILE_PATH } from '../config/server.config.js';
-
-const INPUT_FILE = SEED_POPULATION_FILE_PATH;
-const OUTPUT_FILE = SEED_CONSOLIDATED_POPULATION_FILE_PATH;
+import * as fs from "fs";
+import type { GeoJSON, LGAOutput, StateOutput, WardOutput } from "../types/seed.types.js";
+import { logger } from "../utils/logger.util.js";
+import { serverConfig } from "../config/server.config.js";
 
 function processData() {
   const startTime = Date.now();
-  
+
   try {
-    logger.info(`[PopulationScript] Reading ${INPUT_FILE}...`);
-    
+    logger.info(`[PopulationScript] Reading ${serverConfig.seeding.populationFilePath}...`);
+
     // Check if file exists before reading
-    if (!fs.existsSync(INPUT_FILE)) {
-        logger.error(`[PopulationScript] Input file not found: ${INPUT_FILE}`);
-        return;
+    if (!fs.existsSync(serverConfig.seeding.populationFilePath)) {
+      logger.error(`[PopulationScript] Input file not found: ${serverConfig.seeding.populationFilePath}`);
+      return;
     }
 
-    const rawData = fs.readFileSync(INPUT_FILE, 'utf-8');
+    const rawData = fs.readFileSync(serverConfig.seeding.populationFilePath, "utf-8");
     const geoJson: GeoJSON = JSON.parse(rawData);
 
     // Structure: State -> LGA -> Ward -> Total Population
@@ -32,7 +28,7 @@ function processData() {
       const state = p.state_name;
       const lga = p.lga_name;
       const ward = p.ward_name;
-      
+
       // We read the pre-calculated total for this row (Total of all Age Groups)
       const rowPopulation = Number(p.pop_total) || 0;
 
@@ -53,8 +49,8 @@ function processData() {
       lgaMap.set(ward, currentWardPop + rowPopulation);
     }
 
-    logger.info('[PopulationScript] Transforming to final structure...');
-    
+    logger.info("[PopulationScript] Transforming to final structure...");
+
     const output: StateOutput[] = [];
 
     // Loop through aggregated States
@@ -71,7 +67,7 @@ function processData() {
         for (const [wardName, wardPop] of wardsMap) {
           wardList.push({
             ward: wardName,
-            population: wardPop
+            population: wardPop,
           });
           lgaTotalPop += wardPop;
         }
@@ -82,9 +78,9 @@ function processData() {
         lgaList.push({
           lga: lgaName,
           population: lgaTotalPop,
-          wards: wardList
+          wards: wardList,
         });
-        
+
         stateTotalPop += lgaTotalPop;
       }
 
@@ -94,7 +90,7 @@ function processData() {
       output.push({
         state: stateName,
         population: stateTotalPop,
-        lgas: lgaList
+        lgas: lgaList,
       });
     }
 
@@ -102,15 +98,14 @@ function processData() {
     output.sort((a, b) => a.state.localeCompare(b.state));
 
     // Write Output
-    logger.info(`[PopulationScript] Writing results to ${OUTPUT_FILE}...`);
-    fs.writeFileSync(OUTPUT_FILE, JSON.stringify(output, null, 2));
+    logger.info(`[PopulationScript] Writing results to ${serverConfig.seeding.consolidatedPopulationFilePath}...`);
+    fs.writeFileSync(serverConfig.seeding.consolidatedPopulationFilePath, JSON.stringify(output, null, 2));
 
     const duration = (Date.now() - startTime) / 1000;
     logger.info(`[PopulationScript] Done! Processed successfully in ${duration.toFixed(2)}s`);
-    
   } catch (error) {
-    logger.error('[PopulationScript] Error processing file:', { error });
-    logger.error(`[PopulationScript] Ensure '${INPUT_FILE}' is in the correct folder.`);
+    logger.error("[PopulationScript] Error processing file:", { error });
+    logger.error(`[PopulationScript] Ensure '${serverConfig.seeding.populationFilePath}' is in the correct folder.`);
   }
 }
 

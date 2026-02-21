@@ -1,5 +1,5 @@
 model DeliveredAlert {
-  id               String         @id @default(cuid())
+  id               String         @id @default(cuid(2))
   alertId          String         @map("alert_id")
   citizenId        String         @map("citizen_id")
   phoneNumber      String         @map("phone_number")
@@ -9,7 +9,7 @@ model DeliveredAlert {
   deliveredAt      DateTime?      @map("delivered_at")
   failureReason    String?        @map("failure_reason")
   retryCount       Int            @default(0) @map("retry_count")
-  gatewayMessageId String?        @map("gateway_message_id")
+  gatewayMessageId String?        @unique @map("gateway_message_id")
   updatedAt        DateTime       @updatedAt @map("updated_at")
 
   alert   Alert   @relation(fields: [alertId], references: [id], onDelete: Cascade)
@@ -23,10 +23,10 @@ model DeliveredAlert {
 }
 
 model AuditLog {
-  id         String     @id @default(cuid())
+  id         String     @id @default(cuid(2))
   userId     String?    @map("user_id")
   action     ActionType
-  entityType String     @map("entity_type")
+  entityType EntityType @map("entity_type")
   entityId   String     @map("entity_id")
   changes    Json?
   ipAddress  String?    @map("ip_address")
