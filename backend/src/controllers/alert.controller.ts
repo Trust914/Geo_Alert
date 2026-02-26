@@ -108,7 +108,6 @@ export class AlertController {
     });
   });
 
-  
   /**
    * Get all alerts with filters
    */

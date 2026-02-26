@@ -41,10 +41,10 @@ function createDefaultGeometry(): any {
           [0, 0.0001],
           [0.0001, 0.0001],
           [0.0001, 0],
-          [0, 0] // Close the ring
-        ]
-      ]
-    ]
+          [0, 0], // Close the ring
+        ],
+      ],
+    ],
   };
 }
 
@@ -52,16 +52,12 @@ function createDefaultGeometry(): any {
  * Validates and cleans geometry with comprehensive logging
  * Returns ValidationResult with geometry and any warnings
  */
-export function validateAndCleanGeometry(
-  geometry: any,
-  name: string,
-  level: string
-): ValidationResult {
+export function validateAndCleanGeometry(geometry: any, name: string, level: string): ValidationResult {
   const result: ValidationResult = {
     isValid: true,
     geometry: "",
     warnings: [],
-    geometryType: "Unknown"
+    geometryType: "Unknown",
   };
 
   try {
@@ -75,10 +71,10 @@ export function validateAndCleanGeometry(
     }
 
     // Parse if string
-    const parsed = typeof geometry === 'string' ? JSON.parse(geometry) : geometry;
+    const parsed = typeof geometry === "string" ? JSON.parse(geometry) : geometry;
 
     // Check basic structure
-    if (!parsed || typeof parsed !== 'object') {
+    if (!parsed || typeof parsed !== "object") {
       result.isValid = false;
       result.warnings.push(`Invalid geometry object (not an object)`);
       result.geometry = JSON.stringify(createDefaultGeometry());
@@ -97,7 +93,7 @@ export function validateAndCleanGeometry(
     result.geometryType = parsed.type;
 
     // Handle GeometryCollection
-    if (parsed.type === 'GeometryCollection') {
+    if (parsed.type === "GeometryCollection") {
       if (!parsed.geometries || !Array.isArray(parsed.geometries) || parsed.geometries.length === 0) {
         result.isValid = false;
         result.warnings.push(`GeometryCollection has no valid geometries`);
@@ -137,7 +133,7 @@ export function validateAndCleanGeometry(
 
     // Type-specific validation
     switch (parsed.type) {
-      case 'Point':
+      case "Point":
         if (!isValidPoint(parsed.coordinates)) {
           result.isValid = false;
           result.warnings.push(`Invalid Point coordinates (expected [lon, lat] with valid numbers)`);
@@ -147,8 +143,8 @@ export function validateAndCleanGeometry(
         }
         break;
 
-      case 'LineString':
-      case 'MultiPoint':
+      case "LineString":
+      case "MultiPoint":
         if (!Array.isArray(parsed.coordinates) || parsed.coordinates.length < 2) {
           result.isValid = false;
           result.warnings.push(`${parsed.type} requires at least 2 points`);
@@ -158,7 +154,7 @@ export function validateAndCleanGeometry(
         }
         break;
 
-      case 'Polygon':
+      case "Polygon":
         if (!isValidPolygon(parsed.coordinates)) {
           result.isValid = false;
           result.warnings.push(`Invalid Polygon (requires at least 3 points in outer ring)`);
@@ -168,7 +164,7 @@ export function validateAndCleanGeometry(
         }
         break;
 
-      case 'MultiPolygon':
+      case "MultiPolygon":
         if (!isValidMultiPolygon(parsed.coordinates)) {
           result.isValid = false;
           result.warnings.push(`Invalid MultiPolygon structure`);
@@ -178,7 +174,7 @@ export function validateAndCleanGeometry(
         }
         break;
 
-      case 'MultiLineString':
+      case "MultiLineString":
         if (!Array.isArray(parsed.coordinates) || parsed.coordinates.length === 0) {
           result.isValid = false;
           result.warnings.push(`Invalid MultiLineString structure`);
@@ -196,10 +192,9 @@ export function validateAndCleanGeometry(
     // Geometry is valid
     result.geometry = JSON.stringify(parsed);
     return result;
-
   } catch (e) {
     result.isValid = false;
-    result.warnings.push(`Parse error: ${e instanceof Error ? e.message : 'Unknown error'}`);
+    result.warnings.push(`Parse error: ${e instanceof Error ? e.message : "Unknown error"}`);
     result.geometry = JSON.stringify(createDefaultGeometry());
     result.geometryType = "MultiPolygon (default)";
     return result;
@@ -210,14 +205,7 @@ export function validateAndCleanGeometry(
  * Validates a Point coordinate pair
  */
 function isValidPoint(coords: any): boolean {
-  return Array.isArray(coords) &&
-         coords.length >= 2 &&
-         typeof coords[0] === 'number' &&
-         typeof coords[1] === 'number' &&
-         !isNaN(coords[0]) &&
-         !isNaN(coords[1]) &&
-         isFinite(coords[0]) &&
-         isFinite(coords[1]);
+  return Array.isArray(coords) && coords.length >= 2 && typeof coords[0] === "number" && typeof coords[1] === "number" && !isNaN(coords[0]) && !isNaN(coords[1]) && isFinite(coords[0]) && isFinite(coords[1]);
 }
 
 /**
@@ -255,9 +243,9 @@ function isValidMultiPolygon(coords: any): boolean {
  */
 export function isValidGeoJSON(geometry: any): boolean {
   try {
-    const parsed = typeof geometry === 'string' ? JSON.parse(geometry) : geometry;
+    const parsed = typeof geometry === "string" ? JSON.parse(geometry) : geometry;
 
-    if (!parsed || typeof parsed !== 'object') {
+    if (!parsed || typeof parsed !== "object") {
       return false;
     }
 
@@ -265,28 +253,19 @@ export function isValidGeoJSON(geometry: any): boolean {
       return false;
     }
 
-    const validTypes = [
-      'Point',
-      'LineString',
-      'Polygon',
-      'MultiPoint',
-      'MultiLineString',
-      'MultiPolygon',
-      'GeometryCollection'
-    ];
+    const validTypes = ["Point", "LineString", "Polygon", "MultiPoint", "MultiLineString", "MultiPolygon", "GeometryCollection"];
 
     if (!validTypes.includes(parsed.type)) {
       return false;
     }
 
     // GeometryCollection has geometries instead of coordinates
-    if (parsed.type === 'GeometryCollection') {
+    if (parsed.type === "GeometryCollection") {
       return parsed.geometries && Array.isArray(parsed.geometries) && parsed.geometries.length > 0;
     }
 
     // Other types must have coordinates
     return parsed.coordinates !== undefined && Array.isArray(parsed.coordinates);
-
   } catch (e) {
     return false;
   }
@@ -297,7 +276,7 @@ export function isValidGeoJSON(geometry: any): boolean {
  */
 export function hasValidCoordinates(geometry: any): boolean {
   try {
-    const parsed = typeof geometry === 'string' ? JSON.parse(geometry) : geometry;
+    const parsed = typeof geometry === "string" ? JSON.parse(geometry) : geometry;
 
     if (!parsed || !parsed.coordinates) {
       return false;
@@ -308,29 +287,25 @@ export function hasValidCoordinates(geometry: any): boolean {
     }
 
     switch (parsed.type) {
-      case 'Point':
+      case "Point":
         return isValidPoint(parsed.coordinates);
 
-      case 'Polygon':
+      case "Polygon":
         return isValidPolygon(parsed.coordinates);
 
-      case 'MultiPolygon':
+      case "MultiPolygon":
         return isValidMultiPolygon(parsed.coordinates);
 
-      case 'LineString':
-      case 'MultiPoint':
-        return parsed.coordinates.length >= 2 &&
-               parsed.coordinates.every((point: any) => isValidPoint(point));
+      case "LineString":
+      case "MultiPoint":
+        return parsed.coordinates.length >= 2 && parsed.coordinates.every((point: any) => isValidPoint(point));
 
-      case 'MultiLineString':
-        return parsed.coordinates.every((line: any) =>
-          Array.isArray(line) && line.length >= 2
-        );
+      case "MultiLineString":
+        return parsed.coordinates.every((line: any) => Array.isArray(line) && line.length >= 2);
 
       default:
         return true;
     }
-
   } catch (e) {
     return false;
   }
@@ -341,10 +316,10 @@ export function hasValidCoordinates(geometry: any): boolean {
  */
 export function getGeometryType(geometry: any): string {
   try {
-    const parsed = typeof geometry === 'string' ? JSON.parse(geometry) : geometry;
-    return parsed?.type || 'Unknown';
+    const parsed = typeof geometry === "string" ? JSON.parse(geometry) : geometry;
+    return parsed?.type || "Unknown";
   } catch {
-    return 'Invalid';
+    return "Invalid";
   }
 }
 
@@ -353,7 +328,7 @@ export function getGeometryType(geometry: any): string {
  */
 export function countCoordinates(geometry: any): number {
   try {
-    const parsed = typeof geometry === 'string' ? JSON.parse(geometry) : geometry;
+    const parsed = typeof geometry === "string" ? JSON.parse(geometry) : geometry;
 
     if (!parsed || !parsed.coordinates) return 0;
 
@@ -361,22 +336,22 @@ export function countCoordinates(geometry: any): number {
     const coords = parsed.coordinates;
 
     switch (type) {
-      case 'Point':
+      case "Point":
         return 1;
 
-      case 'LineString':
-      case 'MultiPoint':
+      case "LineString":
+      case "MultiPoint":
         return Array.isArray(coords) ? coords.length : 0;
 
-      case 'Polygon':
+      case "Polygon":
         if (!Array.isArray(coords) || !coords[0]) return 0;
         return coords.reduce((sum: number, ring: any[]) => sum + (ring?.length || 0), 0);
 
-      case 'MultiLineString':
+      case "MultiLineString":
         if (!Array.isArray(coords)) return 0;
         return coords.reduce((sum: number, line: any[]) => sum + (line?.length || 0), 0);
 
-      case 'MultiPolygon':
+      case "MultiPolygon":
         if (!Array.isArray(coords)) return 0;
         return coords.reduce((sum: number, polygon: any[]) => {
           return sum + polygon.reduce((ringSum: number, ring: any[]) => ringSum + (ring?.length || 0), 0);
@@ -393,14 +368,9 @@ export function countCoordinates(geometry: any): number {
 /**
  * Logs validation warnings for a jurisdiction
  */
-export function logValidationWarning(
-  level: string,
-  name: string,
-  warnings: string[],
-  additionalInfo: Record<string, any> | undefined
-): void {
+export function logValidationWarning(level: string, name: string, warnings: string[], additionalInfo: Record<string, any> | undefined): void {
   if (warnings.length === 0) return;
 
-  const warningMsg = warnings.join('; ');
+  const warningMsg = warnings.join("; ");
   logger.warn(`⚠️  ${level} "${name}": ${warningMsg}`, additionalInfo !== undefined ? additionalInfo : {});
 }

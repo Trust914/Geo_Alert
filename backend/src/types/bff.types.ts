@@ -253,8 +253,8 @@ export interface IBFFAuditLogFilters {
   userId?: string;
   startDate?: Date | null;
   endDate?: Date | null;
-  pagination: IPagination
-  sortOptions: ISortOptions
+  pagination: IPagination;
+  sortOptions: ISortOptions;
 }
 
 export interface IBFFAuditLogEntry {

@@ -10,11 +10,7 @@ export class EmailService {
    * [PUBLIC API] Queue an email to be sent asynchronously
    * Use this method in your Controllers and Services.
    */
-  static async send(
-    to: string,
-    type: EmailType,
-    data: EmailTemplateData
-  ): Promise<void> {
+  static async send(to: string, type: EmailType, data: EmailTemplateData): Promise<void> {
     try {
       // 1. Generate HTML and Subject
       const { subject, html } = EmailTemplateService.generateHtml(type, data);
@@ -44,11 +40,7 @@ export class EmailService {
    * [WORKER API] Send the email immediately via SMTP.
    * ONLY the RabbitMQ Worker should call this method.
    */
-  static async sendDirect(
-    to: string,
-    subject: string,
-    html: string
-  ): Promise<void> {
+  static async sendDirect(to: string, subject: string, html: string): Promise<void> {
     try {
       // Manually fetch the Access Token
       // This ensures we have a fresh token before attempting to send
@@ -76,7 +68,7 @@ export class EmailService {
       logger.info(`Email sent via SMTP`, {
         to: this.maskEmail(to),
         subject,
-        info
+        info,
       });
     } catch (error) {
       logger.error(`SMTP transmission failed`, {
@@ -84,14 +76,7 @@ export class EmailService {
         subject,
         error: error instanceof Error ? error.message : "Unknown error",
       });
-      throw AppError.internal(
-        `Failed to send email: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`,
-        null,
-        "EmailService",
-        { error }
-      );
+      throw AppError.internal(`Failed to send email: ${error instanceof Error ? error.message : "Unknown error"}`, null, "EmailService", { error });
     }
   }
 

@@ -4,13 +4,7 @@ import { serverConfig } from "../config/server.config.js";
 import { prisma } from "../lib/prisma.js";
 import { ActionType, DeliveryStatus, EntityType } from "../prisma/prisma/generated/enums.js";
 import { RabbitMQService } from "../rabbitmq/rabbitmq.queue.js";
-import type {
-  ATDeliveryReport,
-  ISMSDeliveryStatsData,
-  ISMSRetryResultData,
-  SendSMSOptions,
-  SMSResult,
-} from "../types/sms.types.js";
+import type { ATDeliveryReport, ISMSDeliveryStatsData, ISMSRetryResultData, SendSMSOptions, SMSResult } from "../types/sms.types.js";
 import { mapStatusToEnum } from "../utils/app.utils.js";
 import { AppError } from "../utils/error.util.js";
 import { logger } from "../utils/logger.util.js";
@@ -134,13 +128,7 @@ export class SMSService {
     }
   }
 
-  static async sendAlertSMSBatch(
-    phoneNumbers: string[],
-    headline: string,
-    description: string,
-    severity: string,
-    alertId: string
-  ): Promise<SMSResult[]> {
+  static async sendAlertSMSBatch(phoneNumbers: string[], headline: string, description: string, severity: string, alertId: string): Promise<SMSResult[]> {
     const severityEmoji: Record<string, string> = {
       EXTREME: "🔴",
       SEVERE: "🟠",
@@ -236,7 +224,7 @@ export class SMSService {
         cacheConstants.keys.SMS.TRANSACTIONAL, // Prefix
         result.messageId, // Identifier
         "welcome", // Data
-        cacheConstants.ttl.LONG // TTL (1 hour)
+        cacheConstants.ttl.LONG, // TTL (1 hour)
       );
     }
 
@@ -267,7 +255,7 @@ export class SMSService {
         cacheConstants.keys.SMS.TRANSACTIONAL, // Prefix
         result.messageId, // Identifier
         "otp", // Data
-        cacheConstants.ttl.LONG // TTL (1 hour)
+        cacheConstants.ttl.LONG, // TTL (1 hour)
       );
     }
 
@@ -323,7 +311,7 @@ export class SMSService {
 
         return delivery;
       },
-      cacheConstants.ttl.SHORT
+      cacheConstants.ttl.SHORT,
     );
   }
 
@@ -342,17 +330,18 @@ export class SMSService {
 
     try {
       // Group reports by status for efficient processing
-      const reportsByStatus = reports.reduce((acc, report) => {
-        const status = mapStatusToEnum(report.status);
-        if (!acc[status]) acc[status] = [];
-        acc[status].push(report);
-        return acc;
-      }, {} as Record<DeliveryStatus, ATDeliveryReport[]>);
+      const reportsByStatus = reports.reduce(
+        (acc, report) => {
+          const status = mapStatusToEnum(report.status);
+          if (!acc[status]) acc[status] = [];
+          acc[status].push(report);
+          return acc;
+        },
+        {} as Record<DeliveryStatus, ATDeliveryReport[]>,
+      );
 
       // Process each status group
-      const updatePromises = Object.entries(reportsByStatus).map(([status, groupReports]) =>
-        this.updateDeliveryStatusBatch(groupReports, status as DeliveryStatus)
-      );
+      const updatePromises = Object.entries(reportsByStatus).map(([status, groupReports]) => this.updateDeliveryStatusBatch(groupReports, status as DeliveryStatus));
 
       await Promise.allSettled(updatePromises);
 
@@ -373,7 +362,6 @@ export class SMSService {
       throw error;
     }
   }
-
 
   /**
    * Update delivery status for multiple reports at once
@@ -400,10 +388,13 @@ export class SMSService {
       // Add failure reasons for failed deliveries
       const failureReasons = reports
         .filter((r) => r.failureReason)
-        .reduce((acc, r) => {
-          acc[r.id] = r.failureReason!;
-          return acc;
-        }, {} as Record<string, string>);
+        .reduce(
+          (acc, r) => {
+            acc[r.id] = r.failureReason!;
+            return acc;
+          },
+          {} as Record<string, string>,
+        );
 
       // Batch update all matching records
       const result = await prisma.$transaction(
@@ -414,8 +405,8 @@ export class SMSService {
               ...updateData,
               failureReason: failureReasons[id] || null,
             },
-          })
-        )
+          }),
+        ),
       );
 
       const totalUpdated = result.reduce((sum, r) => sum + r.count, 0);
@@ -493,7 +484,7 @@ export class SMSService {
           averageDeliveryTime,
         };
       },
-      cacheConstants.ttl.SHORT // Cache for 5 minutes
+      cacheConstants.ttl.SHORT, // Cache for 5 minutes
     );
   }
 
@@ -543,13 +534,7 @@ export class SMSService {
     const phoneNumbers = failedDeliveries.map((d) => d.citizen.phoneNumber);
 
     // Resend SMS
-    const results = await this.sendAlertSMSBatch(
-      phoneNumbers,
-      alert?.headline as string,
-      alert?.description as string,
-      alert?.severity as string,
-      alertId
-    );
+    const results = await this.sendAlertSMSBatch(phoneNumbers, alert?.headline as string, alert?.description as string, alert?.severity as string, alertId);
 
     // Update retry counts and new message IDs
     const updatePromises = results.map((result, index) => {

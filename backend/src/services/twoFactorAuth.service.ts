@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import { authenticator } from "otplib";
 import qrcode from "qrcode";
-import { cacheConstants} from "../config/cache.constants.js";
+import { cacheConstants } from "../config/cache.constants.js";
 import { prisma } from "../lib/prisma.js";
 import { ActionType, EntityType, TwoFactorMethod } from "../prisma/prisma/generated/enums.js";
 import { RabbitMQService } from "../rabbitmq/rabbitmq.queue.js";
@@ -124,7 +124,7 @@ export class TwoFactorService {
       this.MAX_SETUP_ATTEMPTS,
       cacheConstants.ttl.LONG, // 1 hour window
       this.SETUP_LOCKOUT_SECONDS,
-      "Too many setup attempts."
+      "Too many setup attempts.",
     );
 
     // Check recent send cooldown
@@ -157,7 +157,7 @@ export class TwoFactorService {
           createdAt: Date.now(),
           expiresAt: expiryTimestamp,
         },
-        this.OTP_EXPIRY_SECONDS // Redis TTL handles automatic expiry
+        this.OTP_EXPIRY_SECONDS, // Redis TTL handles automatic expiry
       ),
       this.cache.set(cacheConstants.keys.AUTH.EMAIL_SETUP_COOLDOWN, userId, "true", this.OTP_COOLDOWN_SECONDS),
     ]);
@@ -258,7 +258,7 @@ export class TwoFactorService {
       this.MAX_OTP_REQUESTS_PER_HOUR,
       3600, // 1 hour window
       this.SETUP_LOCKOUT_SECONDS,
-      "Too many OTP requests."
+      "Too many OTP requests.",
     );
 
     // Check cooldown
@@ -282,7 +282,7 @@ export class TwoFactorService {
           createdAt: Date.now(),
           expiresAt: expiryTimestamp,
         },
-        this.OTP_EXPIRY_SECONDS
+        this.OTP_EXPIRY_SECONDS,
       ),
       this.cache.set(cacheConstants.keys.AUTH.EMAIL_OTP_COOLDOWN, userId, "true", this.OTP_COOLDOWN_SECONDS),
     ]);
@@ -501,14 +501,7 @@ export class TwoFactorService {
    * @param lockoutSeconds - Lockout duration after exceeding attempts
    * @param errorMessage - Custom error message
    */
-  private static async checkAndIncrementRateLimit(
-    cacheKey: string,
-    userId: string,
-    maxAttempts: number,
-    windowSeconds: number,
-    lockoutSeconds: number,
-    errorMessage: string
-  ): Promise<void> {
+  private static async checkAndIncrementRateLimit(cacheKey: string, userId: string, maxAttempts: number, windowSeconds: number, lockoutSeconds: number, errorMessage: string): Promise<void> {
     const lockoutKey = `${cacheKey}:lockout`;
     const attemptsKey = `${cacheKey}:attempts`;
 
@@ -525,10 +518,7 @@ export class TwoFactorService {
       // Trigger lockout
       await this.cache.set(lockoutKey, userId, true, lockoutSeconds);
 
-      throw AppError.tooManyRequests(
-        `${errorMessage} Account locked for ${Math.floor(lockoutSeconds / 60)} minutes.`,
-        "TwoFactorService"
-      );
+      throw AppError.tooManyRequests(`${errorMessage} Account locked for ${Math.floor(lockoutSeconds / 60)} minutes.`, "TwoFactorService");
     }
   }
 

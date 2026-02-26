@@ -1,30 +1,3 @@
-/**
- * BFF Controller — Optimized with Token Refresh Support
- *
- * Key improvements:
- * 1. Manual token refresh endpoint (optional — middleware handles auto-refresh)
- * 2. Enhanced session status with token expiry information
- * 3. Cleaner error handling and response formatting
- *
- * Endpoint map:
- *  POST   /auth/login                 → Initial login
- *  POST   /auth/verify-2fa            → Complete 2FA verification
- *  POST   /auth/resend-otp            → Resend login OTP
- *  POST   /auth/refresh               → Manual token refresh (NEW)
- *  POST   /auth/logout                → Logout current session
- *  POST   /auth/logout-all            → Logout all sessions (step-up)
- *  GET    /auth/me                    → Get current user
- *  POST   /auth/change-password       → Change password (step-up)
- *  GET    /session/status             → Get session & token status
- *  GET    /sessions                   → List all sessions
- *  DELETE /sessions/:sessionId        → Revoke specific session (step-up)
- *  GET    /audit-logs                 → User audit logs
- *  GET    /audit-logs/agency          → Agency audit logs
- *  GET    /reset-password/verify      → Verify reset token (public)
- *  POST   /reset-password/complete    → Complete password reset (public)
- *  POST   /reset-password/resend-otp  → Resend reset OTP (public)
- */
-
 import type { Request, Response } from "express";
 import statusCodes from "http-status";
 import { BFFService } from "../services/bff.service.js";

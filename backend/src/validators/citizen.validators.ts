@@ -87,14 +87,5 @@ export const citizensNearbySchema = z.object({
       .min(0.1, "Radius must be at least 0.1km")
       .max(1000, "Radius cannot exceed 1000km")
       .default(10),
-
-    // limit: z.coerce
-    //   .number({
-    //     error: "Limit must be a number",
-    //   })
-    //   .int("Limit must be an integer")
-    //   .min(1, "Limit must be at least 1")
-    //   .max(1000, "Limit cannot exceed 1000")
-    //   .default(100),
   }),
 });

@@ -3,12 +3,7 @@ import { prisma } from "../lib/prisma.js";
 import { ActionType, EntityType, UserRole } from "../prisma/prisma/generated/enums.js";
 import { RabbitMQService } from "../rabbitmq/rabbitmq.queue.js";
 import { ACTION_DESCRIPTIONS } from "../types/actions.types.js";
-import {
-  AccountType,
-  type IActivationEmailData,
-  type IActivationTokenResult,
-  type TAccountType,
-} from "../types/activation.types.js";
+import { AccountType, type IActivationEmailData, type IActivationTokenResult, type TAccountType } from "../types/activation.types.js";
 import { EmailType, type IAgencyActivationData, type IUserActivationData } from "../types/email.types.js";
 import { createAuditLog } from "../utils/auditLog.util.js";
 import { AppError } from "../utils/error.util.js";
@@ -64,7 +59,7 @@ export class ActivationService {
         used: false,
         attempts: 0,
       },
-      this.ACTIVATION_TOKEN_EXPIRY
+      this.ACTIVATION_TOKEN_EXPIRY,
     );
 
     // Build activation URL with token
@@ -167,10 +162,7 @@ export class ActivationService {
 
       if (tokenData.attempts >= this.MAX_ACTIVATION_ATTEMPTS) {
         // Lock out user
-        await Promise.all([
-          this.cache.set(lockoutKey, userId, true, this.ACTIVATION_LOCKOUT),
-          this.cache.delete(cacheConstants.keys.AUTH.ACTIVATION_TOKEN, userId),
-        ]);
+        await Promise.all([this.cache.set(lockoutKey, userId, true, this.ACTIVATION_LOCKOUT), this.cache.delete(cacheConstants.keys.AUTH.ACTIVATION_TOKEN, userId)]);
 
         await createAuditLog(null, ActionType.ACTIVATION_FAILED, EntityType.USER, userId, {
           description: ACTION_DESCRIPTIONS[ActionType.ACTIVATION_FAILED],
@@ -182,12 +174,7 @@ export class ActivationService {
       }
 
       // Update attempts
-      await this.cache.set(
-        cacheConstants.keys.AUTH.ACTIVATION_TOKEN,
-        userId,
-        tokenData,
-        Math.floor((tokenData.expiresAt - Date.now()) / 1000)
-      );
+      await this.cache.set(cacheConstants.keys.AUTH.ACTIVATION_TOKEN, userId, tokenData, Math.floor((tokenData.expiresAt - Date.now()) / 1000));
 
       throw AppError.unauthorized("Invalid activation token", "ActivationService");
     }
@@ -297,7 +284,7 @@ export class ActivationService {
       rateLimitKey,
       userId,
       true,
-      cacheConstants.ttl.SHORT // 5 minutes
+      cacheConstants.ttl.SHORT, // 5 minutes
     );
   }
 }

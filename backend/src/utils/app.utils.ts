@@ -1,16 +1,13 @@
 import type { NextFunction, Request, Response } from "express";
 import statusCodes from "http-status";
-import { cacheConstants} from "../config/cache.constants.js";
+import { cacheConstants } from "../config/cache.constants.js";
 import { prisma } from "../lib/prisma.js";
 import { AgencyType, DeliveryStatus, JurisdictionLevel } from "../prisma/prisma/generated/enums.js";
 import { getCacheService } from "../services/cache.service.js";
 import { AppError } from "./error.util.js";
 import { logger } from "./logger.util.js";
 
-export const hideSensitiveKeys = (
-  originObj: Record<string, string | number>,
-  sensitiveKeys: Array<string>
-): Record<string, string | number> | null => {
+export const hideSensitiveKeys = (originObj: Record<string, string | number>, sensitiveKeys: Array<string>): Record<string, string | number> | null => {
   const keys = Object.keys(originObj);
 
   // Return null if object is empty or undefined
@@ -56,7 +53,7 @@ export const asyncHandler = <T = any>(
     errorMessage?: string;
     statusCode?: number;
     handler?: string;
-  }
+  },
 ) => {
   return (req: Request, res: Response, next: NextFunction): Promise<void> | void => {
     Promise.resolve(fn(req, res, next)).catch((error) => {
@@ -148,7 +145,7 @@ export const getNemaAgencyId = async (): Promise<string> => {
       }
       return nema.id;
     },
-    cacheConstants.ttl.VERY_LONG
+    cacheConstants.ttl.VERY_LONG,
   );
 };
 

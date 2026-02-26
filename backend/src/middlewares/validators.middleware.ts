@@ -29,7 +29,7 @@ export const validate = (schema: z.ZodObject<any>) => {
             handler: "ValidatorMiddleWare",
             isOperational: true,
             details: treeifyError(error), // Includes specific field-level errors
-          })
+          }),
         );
       }
       next(error);

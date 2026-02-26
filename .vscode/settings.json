@@ -9,7 +9,7 @@
   "scss.lint.unknownAtRules": "ignore",
   "less.lint.unknownAtRules": "ignore",
   "css.customData": [".vscode/css_custom_data.json"],
-  "prettier.printWidth": 300,
+  "prettier.printWidth": 400,
   "files.trimFinalNewlines": true,
   "files.trimTrailingWhitespace": true
 }

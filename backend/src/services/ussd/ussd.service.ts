@@ -20,11 +20,7 @@ export class USSDService {
   /**
    * Main USSD handler
    */
-  static async handleUSSD(
-    sessionId: string,
-    phoneNumber: string,
-    text: string
-  ): Promise<string> {
+  static async handleUSSD(sessionId: string, phoneNumber: string, text: string): Promise<string> {
     try {
       logger.debug("Processing USSD request", { sessionId, phoneNumber, text });
 
@@ -57,11 +53,7 @@ export class USSDService {
   /**
    * Route USSD request to appropriate handler
    */
-  private static async routeRequest(
-    session: USSDSession,
-    input: string,
-    allInputs: string[]
-  ): Promise<string> {
+  private static async routeRequest(session: USSDSession, input: string, allInputs: string[]): Promise<string> {
     const { step } = session;
 
     try {
@@ -121,9 +113,7 @@ export class USSDService {
    */
   private static async handleStart(session: USSDSession): Promise<string> {
     try {
-      const existingCitizen = await CitizenService.getCitizenByPhone(
-        session.phoneNumber
-      );
+      const existingCitizen = await CitizenService.getCitizenByPhone(session.phoneNumber);
 
       session.step = USSDStep.MAIN_MENU;
 
@@ -131,23 +121,15 @@ export class USSDService {
         session.data.isRegistered = true;
         await this.saveSession(session);
 
-        return USSDTemplateService.welcomeRegistered(
-          existingCitizen.firstName,
-          existingCitizen.state?.name || "Your State",
-          existingCitizen.lga?.name || "Your LGA"
-        );
+        return USSDTemplateService.welcomeRegistered(existingCitizen.firstName, existingCitizen.state?.name || "Your State", existingCitizen.lga?.name || "Your LGA");
       } else {
         session.data.isRegistered = false;
         await this.saveSession(session);
 
-        return USSDTemplateService.welcomeUnsubscribed(
-          existingCitizen.firstName
-        );
+        return USSDTemplateService.welcomeUnsubscribed(existingCitizen.firstName);
       }
     } catch (error) {
-      logger.info(
-        `New citizen registration starting for ${session.phoneNumber}`
-      );
+      logger.info(`New citizen registration starting for ${session.phoneNumber}`);
       session.step = USSDStep.REGISTER_LANGUAGE;
       session.data = {};
       await this.saveSession(session);
@@ -159,10 +141,7 @@ export class USSDService {
   /**
    * Handle main menu selection
    */
-  private static async handleMainMenu(
-    session: USSDSession,
-    input: string
-  ): Promise<string> {
+  private static async handleMainMenu(session: USSDSession, input: string): Promise<string> {
     const citizen = await prisma.citizen.findUnique({
       where: { phoneNumber: session.phoneNumber },
     });
@@ -194,12 +173,7 @@ export class USSDService {
             phoneNumber: session.phoneNumber,
           });
 
-          SMSService.sendWelcomeSMS(
-            session.phoneNumber,
-            citizen.firstName
-          ).catch((e) =>
-            logger.error("Failed to send welcome SMS", { error: e.message })
-          );
+          SMSService.sendWelcomeSMS(session.phoneNumber, citizen.firstName).catch((e) => logger.error("Failed to send welcome SMS", { error: e.message }));
 
           return USSDTemplateService.resubscribeSuccess();
         }
@@ -229,19 +203,14 @@ export class USSDService {
         return USSDTemplateService.exitMessage();
 
       default:
-        return citizen.isOptedIn
-          ? USSDTemplateService.invalidMainMenuRegistered()
-          : USSDTemplateService.invalidMainMenuUnsubscribed();
+        return citizen.isOptedIn ? USSDTemplateService.invalidMainMenuRegistered() : USSDTemplateService.invalidMainMenuUnsubscribed();
     }
   }
 
   /**
    * Handle language selection
    */
-  private static async handleLanguageSelection(
-    session: USSDSession,
-    input: string
-  ): Promise<string> {
+  private static async handleLanguageSelection(session: USSDSession, input: string): Promise<string> {
     const languageMap = USSDTemplateService.getLanguageMap();
     const selectedLanguage = languageMap[input];
 
@@ -259,10 +228,7 @@ export class USSDService {
   /**
    * Handle first name input
    */
-  private static async handleFirstName(
-    session: USSDSession,
-    input: string
-  ): Promise<string> {
+  private static async handleFirstName(session: USSDSession, input: string): Promise<string> {
     if (!input || input.length < 2) {
       return USSDTemplateService.invalidName();
     }
@@ -277,10 +243,7 @@ export class USSDService {
   /**
    * Handle last name input
    */
-  private static async handleLastName(
-    session: USSDSession,
-    input: string
-  ): Promise<string> {
+  private static async handleLastName(session: USSDSession, input: string): Promise<string> {
     if (!input || input.length < 2) {
       return USSDTemplateService.invalidLastName();
     }
@@ -296,10 +259,7 @@ export class USSDService {
   /**
    * Show paginated states
    */
-  private static async showStatesPage(
-    session: USSDSession,
-    page: number
-  ): Promise<string> {
+  private static async showStatesPage(session: USSDSession, page: number): Promise<string> {
     const states = await this.cache.getOrSet(
       cacheConstants.keys.REFERENCE.STATES,
       "all",
@@ -308,7 +268,7 @@ export class USSDService {
           orderBy: { name: "asc" },
         });
       },
-      cacheConstants.ttl.WEEK
+      cacheConstants.ttl.WEEK,
     );
 
     const totalPages = Math.ceil(states.length / this.ITEMS_PER_PAGE);
@@ -316,22 +276,13 @@ export class USSDService {
     const endIdx = startIdx + this.ITEMS_PER_PAGE;
     const pageStates = states.slice(startIdx, endIdx);
 
-    return USSDTemplateService.statesPage(
-      pageStates,
-      page,
-      totalPages,
-      page > 0,
-      page < totalPages - 1
-    );
+    return USSDTemplateService.statesPage(pageStates, page, totalPages, page > 0, page < totalPages - 1);
   }
 
   /**
    * Handle state selection with pagination
    */
-  private static async handleStateSelection(
-    session: USSDSession,
-    input: string
-  ): Promise<string> {
+  private static async handleStateSelection(session: USSDSession, input: string): Promise<string> {
     const page = session.data.currentPage || 0;
     const choice = parseInt(input);
 
@@ -339,8 +290,7 @@ export class USSDService {
       return await this.showStatesPage(session, page);
     }
 
-    const states =
-      (await this.cache.get<any[]>(cacheConstants.keys.REFERENCE.STATES, "all")) || [];
+    const states = (await this.cache.get<any[]>(cacheConstants.keys.REFERENCE.STATES, "all")) || [];
     const totalPages = Math.ceil(states.length / this.ITEMS_PER_PAGE);
 
     // Navigation: 9 = Previous/Next (first page), 0 = Next
@@ -386,11 +336,7 @@ export class USSDService {
   /**
    * Show paginated LGAs
    */
-  private static async showLGAsPage(
-    session: USSDSession,
-    stateId: string,
-    page: number
-  ): Promise<string> {
+  private static async showLGAsPage(session: USSDSession, stateId: string, page: number): Promise<string> {
     const lgas = await this.cache.getOrSet(
       cacheConstants.keys.REFERENCE.LGAS,
       stateId,
@@ -400,7 +346,7 @@ export class USSDService {
           orderBy: { name: "asc" },
         });
       },
-      cacheConstants.ttl.WEEK
+      cacheConstants.ttl.WEEK,
     );
 
     const totalPages = Math.ceil(lgas.length / this.ITEMS_PER_PAGE);
@@ -408,23 +354,13 @@ export class USSDService {
     const endIdx = startIdx + this.ITEMS_PER_PAGE;
     const pageLGAs = lgas.slice(startIdx, endIdx);
 
-    return USSDTemplateService.lgasPage(
-      pageLGAs,
-      session.data.stateName!,
-      page,
-      totalPages,
-      page > 0,
-      page < totalPages - 1
-    );
+    return USSDTemplateService.lgasPage(pageLGAs, session.data.stateName!, page, totalPages, page > 0, page < totalPages - 1);
   }
 
   /**
    * Handle LGA selection with pagination
    */
-  private static async handleLGASelection(
-    session: USSDSession,
-    input: string
-  ): Promise<string> {
+  private static async handleLGASelection(session: USSDSession, input: string): Promise<string> {
     const page = session.data.currentPage || 0;
     const choice = parseInt(input);
 
@@ -432,11 +368,7 @@ export class USSDService {
       return await this.showLGAsPage(session, session.data.stateId!, page);
     }
 
-    const lgas =
-      (await this.cache.get<any[]>(
-        cacheConstants.keys.REFERENCE.LGAS,
-        session.data.stateId as string
-      )) || [];
+    const lgas = (await this.cache.get<any[]>(cacheConstants.keys.REFERENCE.LGAS, session.data.stateId as string)) || [];
     const totalPages = Math.ceil(lgas.length / this.ITEMS_PER_PAGE);
 
     // Navigation
@@ -444,19 +376,11 @@ export class USSDService {
       if (page > 0) {
         session.data.currentPage = page - 1;
         await this.saveSession(session);
-        return await this.showLGAsPage(
-          session,
-          session.data.stateId!,
-          page - 1
-        );
+        return await this.showLGAsPage(session, session.data.stateId!, page - 1);
       } else if (page < totalPages - 1) {
         session.data.currentPage = page + 1;
         await this.saveSession(session);
-        return await this.showLGAsPage(
-          session,
-          session.data.stateId!,
-          page + 1
-        );
+        return await this.showLGAsPage(session, session.data.stateId!, page + 1);
       }
     }
 
@@ -490,11 +414,7 @@ export class USSDService {
   /**
    * Show paginated Wards
    */
-  private static async showWardsPage(
-    session: USSDSession,
-    lgaId: string,
-    page: number
-  ): Promise<string> {
+  private static async showWardsPage(session: USSDSession, lgaId: string, page: number): Promise<string> {
     const wards = await this.cache.getOrSet(
       cacheConstants.keys.REFERENCE.WARDS,
       lgaId,
@@ -504,7 +424,7 @@ export class USSDService {
           orderBy: { name: "asc" },
         });
       },
-      cacheConstants.ttl.WEEK
+      cacheConstants.ttl.WEEK,
     );
 
     if (wards.length === 0) {
@@ -518,23 +438,13 @@ export class USSDService {
     const endIdx = startIdx + this.WARDS_PER_PAGE;
     const pageWards = wards.slice(startIdx, endIdx);
 
-    return USSDTemplateService.wardsPage(
-      pageWards,
-      session.data.lgaName!,
-      page,
-      totalPages,
-      page > 0,
-      page < totalPages - 1
-    );
+    return USSDTemplateService.wardsPage(pageWards, session.data.lgaName!, page, totalPages, page > 0, page < totalPages - 1);
   }
 
   /**
    * Handle ward selection with pagination
    */
-  private static async handleWardSelection(
-    session: USSDSession,
-    input: string
-  ): Promise<string> {
+  private static async handleWardSelection(session: USSDSession, input: string): Promise<string> {
     if (input === "8") {
       // Skip ward
       session.data.wardId = null;
@@ -550,11 +460,7 @@ export class USSDService {
       return await this.showWardsPage(session, session.data.lgaId!, page);
     }
 
-    const wards =
-      (await this.cache.get<any[]>(
-        cacheConstants.keys.REFERENCE.WARDS,
-        session.data.lgaId!
-      )) || [];
+    const wards = (await this.cache.get<any[]>(cacheConstants.keys.REFERENCE.WARDS, session.data.lgaId!)) || [];
 
     const totalPages = Math.ceil(wards.length / this.WARDS_PER_PAGE);
 
@@ -604,18 +510,13 @@ export class USSDService {
       language: session.data.language as Language,
     };
 
-    return session.data.isUpdate
-      ? USSDTemplateService.confirmationUpdate(data)
-      : USSDTemplateService.confirmationRegistration(data);
+    return session.data.isUpdate ? USSDTemplateService.confirmationUpdate(data) : USSDTemplateService.confirmationRegistration(data);
   }
 
   /**
    * Handle registration/update confirmation
    */
-  private static async handleConfirmation(
-    session: USSDSession,
-    input: string
-  ): Promise<string> {
+  private static async handleConfirmation(session: USSDSession, input: string): Promise<string> {
     if (input === "2") {
       await this.clearSession(session.sessionId);
       logger.info("USSD Registration cancelled by user", {
@@ -639,10 +540,7 @@ export class USSDService {
       };
       if (session.data.isUpdate) {
         await CitizenService.updateCitizen(session.phoneNumber, citizenData);
-        await this.cache.delete(
-          cacheConstants.keys.CITIZEN.BY_PHONE,
-          session.phoneNumber
-        );
+        await this.cache.delete(cacheConstants.keys.CITIZEN.BY_PHONE, session.phoneNumber);
 
         logger.info("Citizen information updated via USSD", {
           phoneNumber: session.phoneNumber,
@@ -676,10 +574,7 @@ export class USSDService {
   /**
    * Handle unsubscribe confirmation
    */
-  private static async handleUnsubscribe(
-    session: USSDSession,
-    input: string
-  ): Promise<string> {
+  private static async handleUnsubscribe(session: USSDSession, input: string): Promise<string> {
     if (input === "2") {
       await this.clearSession(session.sessionId);
       return USSDTemplateService.unsubscribeCancelled();
@@ -710,15 +605,9 @@ export class USSDService {
   /**
    * Get or create USSD session
    */
-  private static async getSession(
-    sessionId: string,
-    phoneNumber: string
-  ): Promise<USSDSession> {
+  private static async getSession(sessionId: string, phoneNumber: string): Promise<USSDSession> {
     const cacheKey = `${cacheConstants.keys.USSD.SESSION}:${sessionId}`;
-    const cached = await this.cache.get<USSDSession>(
-      cacheConstants.keys.USSD.SESSION,
-      cacheKey
-    );
+    const cached = await this.cache.get<USSDSession>(cacheConstants.keys.USSD.SESSION, cacheKey);
 
     if (cached) {
       logger.debug("Retrieved existing session from cache", {
@@ -750,12 +639,7 @@ export class USSDService {
       step: session.step,
       dataKeys: Object.keys(session.data),
     });
-    await this.cache.set(
-      cacheConstants.keys.USSD.SESSION,
-      cacheKey,
-      session,
-      cacheConstants.ttl.SHORT
-    );
+    await this.cache.set(cacheConstants.keys.USSD.SESSION, cacheKey, session, cacheConstants.ttl.SHORT);
   }
 
   /**

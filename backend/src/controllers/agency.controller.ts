@@ -1,10 +1,10 @@
 import type { Request, Response } from "express";
 import statusCodes from "http-status";
-import type { AgencyStatus, AgencyType, JurisdictionLevel } from "../prisma/prisma/generated/enums.js";
 import { AgencyService } from "../services/agency.service.js";
 import type { IAgencyFilters, ICreateAgencyDTO, IUpdateAgencyDTO, TAgencyResponse, TAgencyStatsResponse, TCreateAgencyResponse, TDeleteAgencyResponse, TGetAgenciesResponse } from "../types/agency.types.js";
 import { asyncHandler } from "../utils/app.utils.js";
 import { AppError } from "../utils/error.util.js";
+import type { AgencyStatus, AgencyType, JurisdictionLevel } from "../prisma/prisma/generated/enums.js";
 
 export class AgencyController {
   static createAgency = asyncHandler(async (req: Request, res: Response<TCreateAgencyResponse>) => {
@@ -36,7 +36,7 @@ export class AgencyController {
     }
 
     const filters: IAgencyFilters = {
-      type: req.query.type as AgencyType,
+      type: req.query.type as AgencyType ,
       jurisdictionLevel: req.query.jurisdictionLevel as JurisdictionLevel,
       status: req.query.status as AgencyStatus,
       search: req.query.search as string,

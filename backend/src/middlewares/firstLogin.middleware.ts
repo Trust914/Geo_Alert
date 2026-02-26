@@ -23,10 +23,7 @@ export const checkPasswordChangeRequired = asyncHandler(async (req: Request, res
   });
 
   if (user?.mustChangePassword) {
-    throw AppError.forbidden(
-      "You must change your password before accessing this resource. Please use the /api/v1/auth/change-password endpoint.",
-      "PasswordChangeRequired"
-    );
+    throw AppError.forbidden("You must change your password before accessing this resource. Please use the /api/v1/auth/change-password endpoint.", "PasswordChangeRequired");
   }
 
   next();

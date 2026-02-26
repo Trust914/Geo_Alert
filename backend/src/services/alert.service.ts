@@ -1,31 +1,9 @@
 import { mapToAlertData } from "../helpers/service.helpers.js";
 import { prisma } from "../lib/prisma.js";
-import {
-  ActionType,
-  AlertCertainty,
-  AlertScope,
-  AlertStatus,
-  AgencyType,
-  DeliveryStatus,
-  EntityType,
-  JurisdictionLevel,
-  MessageType,
-  TargetType,
-  UserRole,
-} from "../prisma/prisma/generated/enums.js";
+import { ActionType, AlertCertainty, AlertScope, AlertStatus, AgencyType, DeliveryStatus, EntityType, JurisdictionLevel, MessageType, TargetType, UserRole } from "../prisma/prisma/generated/enums.js";
 import { RabbitMQService } from "../rabbitmq/rabbitmq.queue.js";
 import { ACTION_DESCRIPTIONS } from "../types/actions.types.js";
-import type {
-  IAlertData,
-  IAlertFilters,
-  IAlertPreviewData,
-  IAlertStatsData,
-  IAlertTarget,
-  ICreateAlertDTO,
-  IGeoJSONLineString,
-  IGeoJSONPolygon,
-  ISendAlertResponse,
-} from "../types/alert.types.js";
+import type { IAlertData, IAlertFilters, IAlertPreviewData, IAlertStatsData, IAlertTarget, ICreateAlertDTO, IGeoJSONLineString, IGeoJSONPolygon, ISendAlertResponse } from "../types/alert.types.js";
 import type { IPaginationMeta } from "../types/api.response.js";
 import { createAuditLog } from "../utils/auditLog.util.js";
 import { CAPXMLGenerator } from "../utils/cap.util.js";
@@ -52,18 +30,9 @@ export class AlertService {
    * Determines if a user is a NEMA super admin.
    * Super admins can view (but not manage) alerts across all agencies.
    */
-  private static async isSuperAdmin(user: {
-    role: UserRole;
-    agencyId: string;
-    agency: { type: string; jurisdictionLevel: string };
-  }): Promise<boolean> {
+  private static async isSuperAdmin(user: { role: UserRole; agencyId: string; agency: { type: string; jurisdictionLevel: string } }): Promise<boolean> {
     const nemaAgencyId = await getNemaAgencyId();
-    return (
-      user.role === UserRole.ADMIN &&
-      user.agency.type === AgencyType.FEDERAL &&
-      user.agency.jurisdictionLevel === JurisdictionLevel.NATIONAL &&
-      user.agencyId === nemaAgencyId
-    );
+    return user.role === UserRole.ADMIN && user.agency.type === AgencyType.FEDERAL && user.agency.jurisdictionLevel === JurisdictionLevel.NATIONAL && user.agencyId === nemaAgencyId;
   }
 
   /**
@@ -97,11 +66,7 @@ export class AlertService {
             if (target.targetType === TargetType.STATE && target.stateId) {
               const state = await prisma.state.findUnique({ where: { id: target.stateId } });
               if (!state || state.name !== jurisdiction) {
-                throw AppError.forbidden(
-                  `You can only send alerts within ${jurisdiction}`,
-                  "AlertService",
-                  { userJurisdiction: jurisdiction, attemptedState: target.stateId, jurisdictionLevel }
-                );
+                throw AppError.forbidden(`You can only send alerts within ${jurisdiction}`, "AlertService", { userJurisdiction: jurisdiction, attemptedState: target.stateId, jurisdictionLevel });
               }
             }
             break;
@@ -110,11 +75,7 @@ export class AlertService {
             if (target.targetType === TargetType.LGA && target.lgaId) {
               const lga = await prisma.lGA.findUnique({ where: { id: target.lgaId } });
               if (!lga || lga.name !== jurisdiction) {
-                throw AppError.forbidden(
-                  `You can only send alerts within ${jurisdiction}`,
-                  "AlertService",
-                  { userJurisdiction: jurisdiction, attemptedLGA: target.lgaId, jurisdictionLevel }
-                );
+                throw AppError.forbidden(`You can only send alerts within ${jurisdiction}`, "AlertService", { userJurisdiction: jurisdiction, attemptedLGA: target.lgaId, jurisdictionLevel });
               }
             }
             break;
@@ -123,11 +84,7 @@ export class AlertService {
             if (target.targetType === TargetType.WARD && target.wardId) {
               const ward = await prisma.ward.findUnique({ where: { id: target.wardId } });
               if (!ward || ward.name !== jurisdiction) {
-                throw AppError.forbidden(
-                  `You can only send alerts within ${jurisdiction}`,
-                  "AlertService",
-                  { userJurisdiction: jurisdiction, attemptedWard: target.wardId, jurisdictionLevel }
-                );
+                throw AppError.forbidden(`You can only send alerts within ${jurisdiction}`, "AlertService", { userJurisdiction: jurisdiction, attemptedWard: target.wardId, jurisdictionLevel });
               }
             }
             break;
@@ -150,9 +107,7 @@ export class AlertService {
     let totalEstimate = 0;
 
     // Strategy 1: Admin boundary targets — batched + deduplicated via OR
-    const adminTargets = targets.filter((t) =>
-      [TargetType.STATE, TargetType.LGA, TargetType.WARD].includes(t.targetType as any)
-    );
+    const adminTargets = targets.filter((t) => [TargetType.STATE, TargetType.LGA, TargetType.WARD].includes(t.targetType as any));
 
     if (adminTargets.length > 0) {
       const orConditions = adminTargets
@@ -173,9 +128,7 @@ export class AlertService {
     }
 
     // Strategy 2: Spatial targets — PostGIS queries per shape
-    const mapTargets = targets.filter((t) =>
-      [TargetType.POLYGON, TargetType.RADIUS, TargetType.PATH].includes(t.targetType as any)
-    );
+    const mapTargets = targets.filter((t) => [TargetType.POLYGON, TargetType.RADIUS, TargetType.PATH].includes(t.targetType as any));
 
     for (const target of mapTargets) {
       if (!target.geometry) continue;
@@ -198,7 +151,7 @@ export class AlertService {
            WHERE "location" IS NOT NULL
              AND "is_opted_in" = true
              AND ST_Within("location", ST_GeomFromText($1, 4326))`,
-          wktGeometry
+          wktGeometry,
         );
 
         totalEstimate += result[0]?.count || 0;
@@ -211,16 +164,12 @@ export class AlertService {
              WHERE "location" IS NOT NULL
                AND "is_opted_in" = true
                AND ST_Contains(ST_GeomFromGeoJSON($1), "location")`,
-            JSON.stringify(target.geometry)
+            JSON.stringify(target.geometry),
           );
           totalEstimate += result[0]?.count || 0;
         } catch (fallbackError) {
           logger.error("Fallback spatial estimation failed", { fallbackError });
-          throw AppError.internal(
-            "Failed to estimate recipients for map-based target",
-            error,
-            "AlertService"
-          );
+          throw AppError.internal("Failed to estimate recipients for map-based target", error, "AlertService");
         }
       }
     }
@@ -235,12 +184,7 @@ export class AlertService {
   // Denied:  Viewer
   // ─────────────────────────────────────────────────────────────────
 
-  static async createAlert(
-    data: ICreateAlertDTO,
-    userId: string,
-    ipAddress?: string,
-    userAgent?: string
-  ): Promise<IAlertData> {
+  static async createAlert(data: ICreateAlertDTO, userId: string, ipAddress?: string, userAgent?: string): Promise<IAlertData> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -303,17 +247,10 @@ export class AlertService {
 
       // Auto-calculate incident location from first target if not provided
       if (!data.incidentLocation && data.targets.length > 0) {
-        const calculatedLocation = await GeoTargetingService.calculateIncidentLocation(
-          data.targets[0] as IAlertTarget
-        );
+        const calculatedLocation = await GeoTargetingService.calculateIncidentLocation(data.targets[0] as IAlertTarget);
         if (calculatedLocation?.latitude && calculatedLocation?.longitude) {
           data.incidentLocation = calculatedLocation;
-          await tx.$executeRawUnsafe(
-            `UPDATE alerts SET incident_location = ST_SetSRID(ST_MakePoint($1, $2), 4326) WHERE id = $3`,
-            calculatedLocation.longitude,
-            calculatedLocation.latitude,
-            createdAlert.id
-          );
+          await tx.$executeRawUnsafe(`UPDATE alerts SET incident_location = ST_SetSRID(ST_MakePoint($1, $2), 4326) WHERE id = $3`, calculatedLocation.longitude, calculatedLocation.latitude, createdAlert.id);
         }
       }
 
@@ -327,10 +264,8 @@ export class AlertService {
             stateId: target.stateId || null,
             lgaId: target.lgaId || null,
             wardId: (target.wardId as string) || null,
-            radiusMeters:
-              target.targetType === TargetType.RADIUS ? (target.radius as number) : null,
-            pathBufferMeters:
-              target.targetType === TargetType.PATH ? (target.bufferMeters as number) : null,
+            radiusMeters: target.targetType === TargetType.RADIUS ? (target.radius as number) : null,
+            pathBufferMeters: target.targetType === TargetType.PATH ? (target.bufferMeters as number) : null,
             estimatedRecipients,
           },
         });
@@ -343,11 +278,7 @@ export class AlertService {
       return createdAlert;
     });
 
-    await Promise.all([
-      this.cache.invalidateGroup(cacheConstants.keys.ALERT.LIST),
-      this.cache.invalidateGroup(cacheConstants.keys.ALERT.ACTIVE),
-      this.cache.invalidateGroup(cacheConstants.keys.ALERT.STATS),
-    ]);
+    await Promise.all([this.cache.invalidateGroup(cacheConstants.keys.ALERT.LIST), this.cache.invalidateGroup(cacheConstants.keys.ALERT.ACTIVE), this.cache.invalidateGroup(cacheConstants.keys.ALERT.STATS)]);
 
     await createAuditLog(
       userId,
@@ -362,7 +293,7 @@ export class AlertService {
         headline: data.headline,
       },
       ipAddress,
-      userAgent
+      userAgent,
     );
 
     const completeAlert = await prisma.alert.findUnique({
@@ -429,10 +360,7 @@ export class AlertService {
     const smsMessage = this.formatSMSMessage(alert.headline, alert.description, alert.severity);
     const smsLength = smsMessage.length;
     const smsCount = Math.ceil(smsLength / 160);
-    const totalRecipients = alert.targets.reduce(
-      (sum, t) => sum + (t.estimatedRecipients || 0),
-      0
-    );
+    const totalRecipients = alert.targets.reduce((sum, t) => sum + (t.estimatedRecipients || 0), 0);
 
     return {
       alert: {
@@ -480,12 +408,7 @@ export class AlertService {
   // Denied:  Viewer
   // ─────────────────────────────────────────────────────────────────
 
-  static async sendAlert(
-    alertId: string,
-    userId: string,
-    ipAddress?: string,
-    userAgent?: string
-  ): Promise<ISendAlertResponse> {
+  static async sendAlert(alertId: string, userId: string, ipAddress?: string, userAgent?: string): Promise<ISendAlertResponse> {
     const [alert, user] = await Promise.all([
       prisma.alert.findUnique({
         where: { id: alertId },
@@ -514,20 +437,12 @@ export class AlertService {
 
     // Users can only send alerts belonging to their own agency
     if (user.agencyId !== alert.agencyId) {
-      throw AppError.forbidden(
-        "You can only send alerts from your own agency",
-        "AlertService",
-        { alertId, userId, userAgencyId: user.agencyId, alertAgencyId: alert.agencyId }
-      );
+      throw AppError.forbidden("You can only send alerts from your own agency", "AlertService", { alertId, userId, userAgencyId: user.agencyId, alertAgencyId: alert.agencyId });
     }
 
     // Only DRAFT alerts can be sent
     if (alert.status !== AlertStatus.DRAFT) {
-      throw AppError.badRequest(
-        `Cannot send alert with status: ${alert.status}. Only DRAFT alerts can be sent.`,
-        "AlertService",
-        { alertId, currentStatus: alert.status }
-      );
+      throw AppError.badRequest(`Cannot send alert with status: ${alert.status}. Only DRAFT alerts can be sent.`, "AlertService", { alertId, currentStatus: alert.status });
     }
 
     const updatedAlert = await prisma.alert.update({
@@ -564,15 +479,7 @@ export class AlertService {
       this.cache.delete(cacheConstants.keys.ALERT.BY_ID, alertId),
       this.cache.invalidateGroup(cacheConstants.keys.ALERT.STATS),
       this.cache.invalidateGroup(cacheConstants.keys.ALERT.ACTIVE),
-      createAuditLog(
-        userId,
-        ActionType.ALERT_SENT,
-        EntityType.ALERT,
-        alertId,
-        { description: ACTION_DESCRIPTIONS[ActionType.ALERT_SENT], status: DeliveryStatus.QUEUED },
-        ipAddress,
-        userAgent
-      ),
+      createAuditLog(userId, ActionType.ALERT_SENT, EntityType.ALERT, alertId, { description: ACTION_DESCRIPTIONS[ActionType.ALERT_SENT], status: DeliveryStatus.QUEUED }, ipAddress, userAgent),
     ]);
 
     logger.info(`Alert ${alertId} queued for delivery`, { userId, agencyId: alert.agencyId });
@@ -592,13 +499,7 @@ export class AlertService {
   // Denied:              already CANCELLED, DELIVERED, or EXPIRED alerts
   // ─────────────────────────────────────────────────────────────────
 
-  static async cancelAlert(
-    alertId: string,
-    userId: string,
-    reason: string,
-    ipAddress?: string,
-    userAgent?: string
-  ): Promise<IAlertData> {
+  static async cancelAlert(alertId: string, userId: string, reason: string, ipAddress?: string, userAgent?: string): Promise<IAlertData> {
     const [alert, user] = await Promise.all([
       prisma.alert.findUnique({
         where: { id: alertId },
@@ -623,31 +524,18 @@ export class AlertService {
     // Operator restrictions: own DRAFT alerts only
     if (user.role === UserRole.OPERATOR) {
       if (alert.createdByUserId !== userId) {
-        throw AppError.forbidden(
-          "Operators can only cancel alerts they created",
-          "AlertService"
-        );
+        throw AppError.forbidden("Operators can only cancel alerts they created", "AlertService");
       }
       if (alert.status !== AlertStatus.DRAFT) {
-        throw AppError.forbidden(
-          "Operators can only cancel DRAFT alerts. Contact a Coordinator or Admin to cancel a live alert.",
-          "AlertService"
-        );
+        throw AppError.forbidden("Operators can only cancel DRAFT alerts. Contact a Coordinator or Admin to cancel a live alert.", "AlertService");
       }
     }
 
     // Globally cancellable statuses
-    const cancellableStatuses: AlertStatus[] = [
-      AlertStatus.DRAFT,
-      AlertStatus.PENDING,
-      AlertStatus.SENT,
-    ];
+    const cancellableStatuses: AlertStatus[] = [AlertStatus.DRAFT, AlertStatus.PENDING, AlertStatus.SENT];
 
     if (!cancellableStatuses.includes(alert.status)) {
-      throw AppError.badRequest(
-        `Alert cannot be cancelled. Current status: ${alert.status}`,
-        "AlertService"
-      );
+      throw AppError.badRequest(`Alert cannot be cancelled. Current status: ${alert.status}`, "AlertService");
     }
 
     const updatedAlert = await prisma.alert.update({
@@ -680,15 +568,7 @@ export class AlertService {
       this.cache.delete(cacheConstants.keys.ALERT.BY_ID, alertId),
       this.cache.invalidateGroup(cacheConstants.keys.ALERT.ACTIVE),
       this.cache.invalidateGroup(cacheConstants.keys.ALERT.STATS),
-      createAuditLog(
-        userId,
-        ActionType.ALERT_CANCELLED,
-        EntityType.ALERT,
-        alertId,
-        { description: ACTION_DESCRIPTIONS[ActionType.ALERT_CANCELLED], reason },
-        ipAddress,
-        userAgent
-      ),
+      createAuditLog(userId, ActionType.ALERT_CANCELLED, EntityType.ALERT, alertId, { description: ACTION_DESCRIPTIONS[ActionType.ALERT_CANCELLED], reason }, ipAddress, userAgent),
     ]);
 
     logger.warn("Alert cancelled", { alertId, userId, reason });
@@ -702,10 +582,7 @@ export class AlertService {
   // All other roles:    scoped to their own agency only
   // ─────────────────────────────────────────────────────────────────
 
-  static async getAlerts(
-    filters: IAlertFilters,
-    userId: string
-  ): Promise<{ data: IAlertData[]; pagination: IPaginationMeta }> {
+  static async getAlerts(filters: IAlertFilters, userId: string): Promise<{ data: IAlertData[]; pagination: IPaginationMeta }> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -781,7 +658,7 @@ export class AlertService {
           },
         };
       },
-      cacheConstants.ttl.SHORT
+      cacheConstants.ttl.SHORT,
     );
   }
 
@@ -838,15 +715,12 @@ export class AlertService {
         if (!alert) throw AppError.notFound("Alert not found", "AlertService");
 
         if (!superAdmin && user.agencyId !== alert.agencyId) {
-          throw AppError.forbidden(
-            "You can only view alerts from your own agency",
-            "AlertService"
-          );
+          throw AppError.forbidden("You can only view alerts from your own agency", "AlertService");
         }
 
         return mapToAlertData(alert);
       },
-      cacheConstants.ttl.SHORT
+      cacheConstants.ttl.SHORT,
     );
   }
 
@@ -876,10 +750,7 @@ export class AlertService {
     const superAdmin = await this.isSuperAdmin(user as any);
 
     if (!superAdmin && user.agencyId !== alert.agencyId) {
-      throw AppError.forbidden(
-        "You do not have permission to view stats for this alert",
-        "AlertService"
-      );
+      throw AppError.forbidden("You do not have permission to view stats for this alert", "AlertService");
     }
 
     const statsGrouped = await prisma.deliveredAlert.groupBy({
@@ -894,23 +765,31 @@ export class AlertService {
       const count = group._count._all;
       stats.total += count;
       switch (group.status) {
-        case DeliveryStatus.QUEUED:    stats.queued    = count; break;
-        case DeliveryStatus.SENT:      stats.sent      = count; break;
-        case DeliveryStatus.DELIVERED: stats.delivered = count; break;
-        case DeliveryStatus.FAILED:    stats.failed    = count; break;
+        case DeliveryStatus.QUEUED:
+          stats.queued = count;
+          break;
+        case DeliveryStatus.SENT:
+          stats.sent = count;
+          break;
+        case DeliveryStatus.DELIVERED:
+          stats.delivered = count;
+          break;
+        case DeliveryStatus.FAILED:
+          stats.failed = count;
+          break;
       }
     }
 
     const successRate = stats.total > 0 ? (stats.delivered / stats.total) * 100 : 0;
-    const failureRate = stats.total > 0 ? (stats.failed   / stats.total) * 100 : 0;
+    const failureRate = stats.total > 0 ? (stats.failed / stats.total) * 100 : 0;
 
     return {
-      total:       stats.total,
-      queued:      stats.queued,
-      sent:        stats.sent,
-      delivered:   stats.delivered,
-      failed:      stats.failed,
-      pending:     stats.queued + stats.sent,
+      total: stats.total,
+      queued: stats.queued,
+      sent: stats.sent,
+      delivered: stats.delivered,
+      failed: stats.failed,
+      pending: stats.queued + stats.sent,
       successRate: parseFloat(successRate.toFixed(2)),
       failureRate: parseFloat(failureRate.toFixed(2)),
     };
@@ -923,30 +802,25 @@ export class AlertService {
   private static formatSMSMessage(headline: string, description: string, severity: string): string {
     const severityEmoji: Record<string, string> = {
       EXTREME: "🔴",
-      SEVERE:  "🟠",
-      MODERATE:"🟡",
-      MINOR:   "🟢",
+      SEVERE: "🟠",
+      MODERATE: "🟡",
+      MINOR: "🟢",
     };
     const emoji = severityEmoji[severity] ?? "⚠️";
     return `${emoji} ${this.APP_NAME?.toUpperCase()} - ${severity}\n\n${headline}\n\n${description}\n\nStay safe and follow instructions from authorities.`;
   }
 
   private static generateAreaDescription(targets: any[]): string {
-    return targets
-      .map((t) => t.state?.name ?? t.lga?.name ?? t.ward?.name ?? "Custom Area")
-      .join(", ");
+    return targets.map((t) => t.state?.name ?? t.lga?.name ?? t.ward?.name ?? "Custom Area").join(", ");
   }
 
   private static formatTargetLocations(targets: any[]): string {
     return targets
       .map((t) => {
         if (t.targetType === TargetType.STATE && t.state) return t.state.name;
-        if (t.targetType === TargetType.LGA   && t.lga)   return t.lga.name;
-        if (t.targetType === TargetType.WARD  && t.ward)  return t.ward.name;
-        if (
-          [TargetType.POLYGON, TargetType.RADIUS, TargetType.PATH].includes(t.targetType) &&
-          t.locationName
-        ) {
+        if (t.targetType === TargetType.LGA && t.lga) return t.lga.name;
+        if (t.targetType === TargetType.WARD && t.ward) return t.ward.name;
+        if ([TargetType.POLYGON, TargetType.RADIUS, TargetType.PATH].includes(t.targetType) && t.locationName) {
           return t.locationName;
         }
         return "Custom Area";
@@ -954,14 +828,11 @@ export class AlertService {
       .join(", ");
   }
 
-  static async getLocationFromJurisdiction(
-    targetType: TargetType,
-    id: string
-  ): Promise<{ latitude: number; longitude: number } | null> {
+  static async getLocationFromJurisdiction(targetType: TargetType, id: string): Promise<{ latitude: number; longitude: number } | null> {
     const tableMap: Partial<Record<TargetType, string>> = {
       [TargetType.STATE]: "states",
-      [TargetType.LGA]:   "lgas",
-      [TargetType.WARD]:  "wards",
+      [TargetType.LGA]: "lgas",
+      [TargetType.WARD]: "wards",
     };
 
     const tableName = tableMap[targetType];
@@ -974,58 +845,41 @@ export class AlertService {
            ST_Y(ST_Centroid(boundary::geometry)) as latitude
          FROM "${tableName}"
          WHERE id = $1`,
-        id
+        id,
       );
-      return result.length > 0
-        ? { latitude: result[0].latitude, longitude: result[0].longitude }
-        : null;
+      return result.length > 0 ? { latitude: result[0].latitude, longitude: result[0].longitude } : null;
     } catch {
       return null;
     }
   }
 
-  private static async updateTargetGeometry(
-    tx: any,
-    targetId: string,
-    target: IAlertTarget
-  ): Promise<void> {
+  private static async updateTargetGeometry(tx: any, targetId: string, target: IAlertTarget): Promise<void> {
     if (!target.geometry) return;
 
     switch (target.targetType) {
       case TargetType.RADIUS:
         if (target.geometry.type === "Point") {
           const [longitude, latitude] = target.geometry.coordinates;
-          await tx.$executeRawUnsafe(
-            `UPDATE alert_targets SET center_point = ST_SetSRID(ST_MakePoint($1, $2), 4326) WHERE id = $3`,
-            longitude, latitude, targetId
-          );
+          await tx.$executeRawUnsafe(`UPDATE alert_targets SET center_point = ST_SetSRID(ST_MakePoint($1, $2), 4326) WHERE id = $3`, longitude, latitude, targetId);
         }
         break;
 
       case TargetType.POLYGON:
         if (target.geometry.type === "Polygon") {
-          await tx.$executeRawUnsafe(
-            `UPDATE alert_targets SET target_polygon = ST_GeomFromText($1, 4326) WHERE id = $2`,
-            this.geoJSONPolygonToWKT(target.geometry), targetId
-          );
+          await tx.$executeRawUnsafe(`UPDATE alert_targets SET target_polygon = ST_GeomFromText($1, 4326) WHERE id = $2`, this.geoJSONPolygonToWKT(target.geometry), targetId);
         }
         break;
 
       case TargetType.PATH:
         if (target.geometry.type === "LineString") {
-          await tx.$executeRawUnsafe(
-            `UPDATE alert_targets SET target_path = ST_GeomFromText($1, 4326) WHERE id = $2`,
-            this.geoJSONLineStringToWKT(target.geometry), targetId
-          );
+          await tx.$executeRawUnsafe(`UPDATE alert_targets SET target_path = ST_GeomFromText($1, 4326) WHERE id = $2`, this.geoJSONLineStringToWKT(target.geometry), targetId);
         }
         break;
     }
   }
 
   private static geoJSONPolygonToWKT(polygon: IGeoJSONPolygon): string {
-    const rings = polygon.coordinates.map((ring) =>
-      ring.map(([lng, lat]) => `${lng} ${lat}`).join(", ")
-    );
+    const rings = polygon.coordinates.map((ring) => ring.map(([lng, lat]) => `${lng} ${lat}`).join(", "));
     return `POLYGON((${rings.join("), (")}))`;
   }
 

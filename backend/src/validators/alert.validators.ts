@@ -26,11 +26,7 @@ const geoJSONLineStringSchema = z.object({
 });
 
 // Accept multiple geometry types
-const geometrySchema = z.union([
-  geoJSONPointSchema,
-  geoJSONPolygonSchema,
-  geoJSONLineStringSchema,
-]);
+const geometrySchema = z.union([geoJSONPointSchema, geoJSONPolygonSchema, geoJSONLineStringSchema]);
 
 /**
  * Alert target validation schema
@@ -64,9 +60,7 @@ const alertTargetSchema = z.discriminatedUnion("targetType", [
   z.object({
     targetType: z.literal(TargetType.RADIUS),
     geometry: geoJSONPolygonSchema, // Accept Polygon for circle approximation
-    radiusMeters: z.number()
-      .min(100, "Radius must be at least 100 meters")
-      .max(100000, "Radius cannot exceed 100km"),
+    radiusMeters: z.number().min(100, "Radius must be at least 100 meters").max(100000, "Radius cannot exceed 100km"),
     locationName: z.string().optional(),
   }),
   // POLYGON (frontend sends Polygon)
@@ -79,9 +73,7 @@ const alertTargetSchema = z.discriminatedUnion("targetType", [
   z.object({
     targetType: z.literal(TargetType.PATH),
     geometry: geoJSONPolygonSchema, // Accept Polygon for buffered path
-    bufferMeters: z.number()
-      .min(10, "Buffer must be at least 10 meters")
-      .max(50000, "Buffer cannot exceed 50km"),
+    bufferMeters: z.number().min(10, "Buffer must be at least 10 meters").max(50000, "Buffer cannot exceed 50km"),
     locationName: z.string().optional(),
   }),
 ]);

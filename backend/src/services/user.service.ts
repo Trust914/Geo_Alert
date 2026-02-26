@@ -609,12 +609,7 @@ export class UserService {
     });
 
     // Invalidate caches
-    await Promise.all([
-      this.cache.delete(cacheConstants.keys.USER.BY_ID, userId),
-      this.cache.delete(cacheConstants.keys.USER.BY_EMAIL, user.email),
-      this.cache.deletePattern(`${cacheConstants.keys.AGENCY.USERS}:${user.agencyId}:*`),
-      this.cache.deletePattern(`${cacheConstants.keys.USER.SESSIONS}:${userId}:*`),
-    ]);
+    await Promise.all([this.cache.delete(cacheConstants.keys.USER.BY_ID, userId), this.cache.delete(cacheConstants.keys.USER.BY_EMAIL, user.email), this.cache.deletePattern(`${cacheConstants.keys.AGENCY.USERS}:${user.agencyId}:*`), this.cache.deletePattern(`${cacheConstants.keys.USER.SESSIONS}:${userId}:*`)]);
 
     logger.info("User deactivated", {
       userId,

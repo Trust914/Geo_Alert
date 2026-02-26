@@ -3,12 +3,7 @@ import readline from "readline";
 import Redis from "ioredis";
 
 import { prisma } from "../lib/prisma.js";
-import {
-  AgencyStatus,
-  AgencyType,
-  JurisdictionLevel,
-  UserRole,
-} from "../prisma/prisma/generated/enums.js";
+import { AgencyStatus, AgencyType, JurisdictionLevel, UserRole } from "../prisma/prisma/generated/enums.js";
 import { ActivationService } from "../services/activation.service.js";
 import { initializeCacheService } from "../services/cache.service.js";
 import { AccountType } from "../types/activation.types.js";
@@ -204,12 +199,8 @@ async function createFirstSuperAdmin() {
     console.log("• User sets their own secure password");
     console.log("• Single-use activation token (1 hour expiry)");
     console.log("=".repeat(60));
-
   } catch (error) {
-    const appError =
-      error instanceof AppError
-        ? error
-        : AppError.internal("Bootstrap failed", error, "Bootstrap");
+    const appError = error instanceof AppError ? error : AppError.internal("Bootstrap failed", error, "Bootstrap");
 
     logger.fatal("Bootstrap failed", {
       error: appError,

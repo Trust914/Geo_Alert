@@ -10,12 +10,7 @@ import type { ProcessedBatchItem } from "../types/seed.types.js";
 import { makeKey } from "../utils/seed.utils.js";
 import { prisma } from "../lib/prisma.js";
 import { logger } from "../utils/logger.util.js";
-import {
-  extractNames,
-  validateAndCleanGeometry,
-  logValidationWarning,
-  type ValidationResult
-} from "../helpers/app.seed.helper.js";
+import { extractNames, validateAndCleanGeometry, logValidationWarning, type ValidationResult } from "../helpers/app.seed.helper.js";
 
 import { JurisdictionLevel } from "../prisma/prisma/generated/enums.js";
 import { serverConfig } from "../config/server.config.js";
@@ -65,11 +60,7 @@ async function getStateLookupMap(): Promise<Map<string, string>> {
 /**
  * Processes validation result and logs warnings
  */
-function processValidationResult(
-  validation: ValidationResult,
-  name: string,
-  level: string
-): void {
+function processValidationResult(validation: ValidationResult, name: string, level: string): void {
   if (!validation.isValid) {
     // Increment warning count
     if (level === JurisdictionLevel.STATE) {
@@ -83,7 +74,7 @@ function processValidationResult(
     // Log the warning
     logValidationWarning(level, name, validation.warnings, {
       originalGeometryType: validation.geometryType,
-      fixedWith: 'MultiPolygon (minimal square at [0,0])'
+      fixedWith: "MultiPolygon (minimal square at [0,0])",
     });
   }
 }
@@ -212,27 +203,18 @@ async function insertWardsBatch(items: ProcessedBatchItem[]) {
 /**
  * Logs a skipped item and tracks it for final report
  */
-function logSkippedItem(
-  level: string,
-  name: string,
-  reason: string,
-  additionalInfo: Record<string, any> | undefined
-): void {
+function logSkippedItem(level: string, name: string, reason: string, additionalInfo: Record<string, any> | undefined): void {
   skippedItems.push({
     name,
     reason,
     level,
-    additionalInfo
+    additionalInfo,
   });
 
   logger.warn(`⚠️  SKIPPED ${level} "${name}": ${reason}`, additionalInfo || {});
 }
 
-async function processStream(
-  filePath: string,
-  level: JurisdictionLevel,
-  parentMap?: Map<string, string>
-) {
+async function processStream(filePath: string, level: JurisdictionLevel, parentMap?: Map<string, string>) {
   return new Promise<void>((resolve, reject) => {
     let batch: ProcessedBatchItem[] = [];
     let count = 0;
@@ -259,12 +241,7 @@ async function processStream(
           stats.wards.skipped++;
         }
 
-        logSkippedItem(
-          level,
-          `<unnamed-${level.toLowerCase()}>`,
-          "Missing name in properties",
-          { properties: props }
-        );
+        logSkippedItem(level, `<unnamed-${level.toLowerCase()}>`, "Missing name in properties", { properties: props });
         return;
       }
 
@@ -279,15 +256,10 @@ async function processStream(
         } else {
           shouldProcess = false;
           stats.lgas.skipped++;
-          logSkippedItem(
-            level,
-            name,
-            "Parent state not found",
-            {
-              stateName: stateName || '<missing>',
-              availableStates: Array.from(parentMap.keys()).slice(0, 5).join(', ') + '...'
-            }
-          );
+          logSkippedItem(level, name, "Parent state not found", {
+            stateName: stateName || "<missing>",
+            availableStates: Array.from(parentMap.keys()).slice(0, 5).join(", ") + "...",
+          });
         }
       } else if (level === JurisdictionLevel.WARD && parentMap) {
         const key = makeKey(stateName, lgaName);
@@ -296,16 +268,11 @@ async function processStream(
         } else {
           shouldProcess = false;
           stats.wards.skipped++;
-          logSkippedItem(
-            level,
-            name,
-            "Parent LGA not found",
-            {
-              stateName: stateName || '<missing>',
-              lgaName: lgaName || '<missing>',
-              lookupKey: key
-            }
-          );
+          logSkippedItem(level, name, "Parent LGA not found", {
+            stateName: stateName || "<missing>",
+            lgaName: lgaName || "<missing>",
+            lookupKey: key,
+          });
         }
       }
 
@@ -358,9 +325,7 @@ async function processStream(
         count += batch.length;
       }
 
-      const levelStats = level === JurisdictionLevel.STATE ? stats.states
-        : level === JurisdictionLevel.LGA ? stats.lgas
-        : stats.wards;
+      const levelStats = level === JurisdictionLevel.STATE ? stats.states : level === JurisdictionLevel.LGA ? stats.lgas : stats.wards;
 
       logger.info(`\n✅ Finished processing ${level}s:`);
       logger.info(`   Total: ${levelStats.total}`);
@@ -390,13 +355,16 @@ function printSkippedItemsReport(): void {
   logger.info("📋 SKIPPED ITEMS REPORT");
   logger.info("=".repeat(60));
 
-  const groupedByLevel = skippedItems.reduce((acc, item) => {
-    if (!acc[item.level]) {
-      acc[item.level] = [];
-    }
-    acc[item.level]?.push(item);
-    return acc;
-  }, {} as Record<string, SkippedItem[]>);
+  const groupedByLevel = skippedItems.reduce(
+    (acc, item) => {
+      if (!acc[item.level]) {
+        acc[item.level] = [];
+      }
+      acc[item.level]?.push(item);
+      return acc;
+    },
+    {} as Record<string, SkippedItem[]>,
+  );
 
   for (const [level, items] of Object.entries(groupedByLevel)) {
     logger.info(`\n${level}s (${items.length} skipped):`);
@@ -417,7 +385,7 @@ async function main() {
   logger.info(`🌱 Starting seed process for: ${seedType}`);
 
   const files = {
-    states: path.resolve(process.cwd(),  serverConfig.seeding.stateFilePath),
+    states: path.resolve(process.cwd(), serverConfig.seeding.stateFilePath),
     lgas: path.resolve(process.cwd(), serverConfig.seeding.lgaFilePath),
     wards: path.resolve(process.cwd(), serverConfig.seeding.wardFilePath),
   };
@@ -464,7 +432,6 @@ async function main() {
 
     // Print detailed skipped items report
     printSkippedItemsReport();
-
   } catch (error) {
     logger.error("❌ Seeding failed:", { error });
     process.exit(1);

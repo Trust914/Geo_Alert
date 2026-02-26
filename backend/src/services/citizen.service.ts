@@ -4,14 +4,7 @@ import { prisma } from "../lib/prisma.js";
 import { ActionType, EntityType, Language } from "../prisma/prisma/generated/enums.js";
 import { ACTION_DESCRIPTIONS } from "../types/actions.types.js";
 import type { IPaginationMeta } from "../types/api.response.js";
-import type {
-  CitizenFilters,
-  ICitizenData,
-  ICitizenNearbyData,
-  ICitizenStats,
-  RegisterCitizenDTO,
-  UpdateCitizenDTO,
-} from "../types/citizen.types.js";
+import type { CitizenFilters, ICitizenData, ICitizenNearbyData, ICitizenStats, RegisterCitizenDTO, UpdateCitizenDTO } from "../types/citizen.types.js";
 import { createAuditLog } from "../utils/auditLog.util.js";
 import { AppError } from "../utils/error.util.js";
 import { logger } from "../utils/logger.util.js";
@@ -165,7 +158,7 @@ export class CitizenService {
 
         return mapToCitizenData(citizen);
       },
-      cacheConstants.ttl.LONG
+      cacheConstants.ttl.LONG,
     );
   }
 
@@ -193,7 +186,7 @@ export class CitizenService {
 
         return mapToCitizenData(citizen);
       },
-      cacheConstants.ttl.LONG
+      cacheConstants.ttl.LONG,
     );
   }
 
@@ -309,12 +302,7 @@ export class CitizenService {
       updatedFields: Object.keys(data),
     });
 
-    await Promise.all([
-      this.cache.delete(cacheConstants.keys.CITIZEN.BY_ID, citizen.id),
-      this.cache.delete(cacheConstants.keys.CITIZEN.BY_PHONE, normalizedPhone),
-      this.cache.deletePattern(`${cacheConstants.keys.CITIZEN.LIST}:*`),
-      this.cache.delete(cacheConstants.keys.CITIZEN.STATS, "global"),
-    ]);
+    await Promise.all([this.cache.delete(cacheConstants.keys.CITIZEN.BY_ID, citizen.id), this.cache.delete(cacheConstants.keys.CITIZEN.BY_PHONE, normalizedPhone), this.cache.deletePattern(`${cacheConstants.keys.CITIZEN.LIST}:*`), this.cache.delete(cacheConstants.keys.CITIZEN.STATS, "global")]);
 
     logger.info("Citizen updated", {
       citizenId: citizen.id,
@@ -390,11 +378,7 @@ export class CitizenService {
         if (wardId) where.wardId = wardId;
         if (isOptedIn !== undefined) where.isOptedIn = isOptedIn;
         if (search) {
-          where.OR = [
-            { firstName: { contains: search, mode: "insensitive" } },
-            { lastName: { contains: search, mode: "insensitive" } },
-            { phoneNumber: { contains: search } },
-          ];
+          where.OR = [{ firstName: { contains: search, mode: "insensitive" } }, { lastName: { contains: search, mode: "insensitive" } }, { phoneNumber: { contains: search } }];
         }
 
         // const skip = (page - 1) * limit;
@@ -428,7 +412,7 @@ export class CitizenService {
           },
         };
       },
-      cacheConstants.ttl.SHORT // Lists expire quickly to reflect updates
+      cacheConstants.ttl.SHORT, // Lists expire quickly to reflect updates
     );
   }
 
@@ -476,7 +460,7 @@ export class CitizenService {
           throw AppError.internal("Spatial query failed", error, "CitizenService", { latitude, longitude, radiusMeters });
         }
       },
-      cacheConstants.ttl.SHORT // Spatial data expires quickly
+      cacheConstants.ttl.SHORT, // Spatial data expires quickly
     );
   }
 
@@ -523,7 +507,7 @@ export class CitizenService {
           byLanguage: byLanguageMap,
         };
       },
-      cacheConstants.ttl.MEDIUM // Stats update every 30 mins or on new registration
+      cacheConstants.ttl.MEDIUM, // Stats update every 30 mins or on new registration
     );
   }
 }

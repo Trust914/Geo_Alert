@@ -1,6 +1,6 @@
 node_modules
-# Keep environment variables out of version control
-.env
+.env*
+!.env.example
 
 src/prisma/prisma/generated
 src/prisma/migrations
@@ -10,4 +10,3 @@ package-lock.json
 *secret.json
 dist/
 secrets/
-!secrets/.keep #keep the folder structurer but not the file

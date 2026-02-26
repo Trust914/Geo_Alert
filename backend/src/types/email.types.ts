@@ -18,14 +18,14 @@ export enum EmailType {
   ALERT_NOTIFICATION = "ALERT_NOTIFICATION",
 
   // Account Activation
-   USER_ACTIVATION = "USER_ACTIVATION",
+  USER_ACTIVATION = "USER_ACTIVATION",
   AGENCY_ACTIVATION = "AGENCY_ACTIVATION",
 }
 
-export enum EmailPurpose{
+export enum EmailPurpose {
   LOGIN = "LOGIN",
   SETUP = "SETUP",
-  ACTION = "ACTION"
+  ACTION = "ACTION",
 }
 
 // Base interface for common data
@@ -88,8 +88,4 @@ export interface IAgencyWelcomeData extends IBaseEmailData {
 }
 
 // Union type for the service
-export type EmailTemplateData =
-  | ITwoFactorData
-  | IPasswordResetData
-  | IUserWelcomeData
-  | IAgencyWelcomeData;
+export type EmailTemplateData = ITwoFactorData | IPasswordResetData | IUserWelcomeData | IAgencyWelcomeData;

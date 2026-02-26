@@ -108,7 +108,7 @@ export class AgencyService {
             agencyType: agency.type,
             jurisdictionLevel: agency.jurisdictionLevel,
             adminEmail: data.adminEmail,
-          }
+          },
         );
 
         // AUDIT LOG: Admin user creation
@@ -230,12 +230,7 @@ export class AgencyService {
     if (jurisdictionLevel) where.jurisdictionLevel = jurisdictionLevel;
     if (status) where.status = status;
     if (search) {
-      where.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { jurisdiction: { contains: search, mode: "insensitive" } },
-        { contactEmail: { contains: search, mode: "insensitive" } },
-        { contactPhone: { contains: search, mode: "insensitive" } },
-      ];
+      where.OR = [{ name: { contains: search, mode: "insensitive" } }, { jurisdiction: { contains: search, mode: "insensitive" } }, { contactEmail: { contains: search, mode: "insensitive" } }, { contactPhone: { contains: search, mode: "insensitive" } }];
     }
 
     // Execute queries in parallel
@@ -343,7 +338,7 @@ export class AgencyService {
 
         return agency;
       },
-      cacheConstants.ttl.AGENCY_DATA
+      cacheConstants.ttl.AGENCY_DATA,
     );
   }
 
@@ -425,7 +420,7 @@ export class AgencyService {
         cache.deletePattern(`${cacheConstants.keys.AGENCY.LIST}:*`),
         cache.deletePattern(`${cacheConstants.keys.AGENCY.USERS}:${agencyId}:*`),
         cache.delete(cacheConstants.keys.AGENCY.STATS, "all"),
-      ].filter(Boolean)
+      ].filter(Boolean),
     );
 
     logger.info("Agency updated successfully", {
@@ -501,13 +496,7 @@ export class AgencyService {
     });
 
     // Invalidate all agency caches
-    await Promise.all([
-      cache.delete(cacheConstants.keys.AGENCY.BY_ID, agencyId),
-      cache.delete(cacheConstants.keys.AGENCY.BY_NAME, agency.name),
-      cache.deletePattern(`${cacheConstants.keys.AGENCY.LIST}:*`),
-      cache.deletePattern(`${cacheConstants.keys.AGENCY.USERS}:${agencyId}:*`),
-      cache.delete(cacheConstants.keys.AGENCY.STATS, "all"),
-    ]);
+    await Promise.all([cache.delete(cacheConstants.keys.AGENCY.BY_ID, agencyId), cache.delete(cacheConstants.keys.AGENCY.BY_NAME, agency.name), cache.deletePattern(`${cacheConstants.keys.AGENCY.LIST}:*`), cache.deletePattern(`${cacheConstants.keys.AGENCY.USERS}:${agencyId}:*`), cache.delete(cacheConstants.keys.AGENCY.STATS, "all")]);
 
     logger.warn("Agency deleted (soft delete)", {
       agencyId: deletedAgency.id,
@@ -539,12 +528,7 @@ export class AgencyService {
     });
 
     // Invalidate caches
-    await Promise.all([
-      cache.delete(cacheConstants.keys.AGENCY.BY_ID, agencyId),
-      cache.delete(cacheConstants.keys.AGENCY.BY_NAME, agency.name),
-      cache.deletePattern(`${cacheConstants.keys.AGENCY.LIST}:*`),
-      cache.delete(cacheConstants.keys.AGENCY.STATS, "all"),
-    ]);
+    await Promise.all([cache.delete(cacheConstants.keys.AGENCY.BY_ID, agencyId), cache.delete(cacheConstants.keys.AGENCY.BY_NAME, agency.name), cache.deletePattern(`${cacheConstants.keys.AGENCY.LIST}:*`), cache.delete(cacheConstants.keys.AGENCY.STATS, "all")]);
 
     logger.info("Agency reactivated", {
       agencyId: reactivatedAgency.id,
@@ -580,17 +564,23 @@ export class AgencyService {
           active: activeAgencies,
           suspended: suspendedAgencies,
           inactive: totalAgencies - activeAgencies - suspendedAgencies,
-          byType: agenciesByType.reduce((acc, item) => {
-            acc[item.type] = item._count;
-            return acc;
-          }, {} as Record<string, number>),
-          byJurisdiction: agenciesByJurisdiction.reduce((acc, item) => {
-            acc[item.jurisdictionLevel] = item._count;
-            return acc;
-          }, {} as Record<string, number>),
+          byType: agenciesByType.reduce(
+            (acc, item) => {
+              acc[item.type] = item._count;
+              return acc;
+            },
+            {} as Record<string, number>,
+          ),
+          byJurisdiction: agenciesByJurisdiction.reduce(
+            (acc, item) => {
+              acc[item.jurisdictionLevel] = item._count;
+              return acc;
+            },
+            {} as Record<string, number>,
+          ),
         };
       },
-      cacheConstants.ttl.AGENCY_STATS
+      cacheConstants.ttl.AGENCY_STATS,
     );
   }
 
@@ -608,51 +598,4 @@ export class AgencyService {
       throw AppError.badRequest(`Invalid combination: ${type} agency cannot have ${jurisdictionLevel} jurisdiction`, "AgencyService");
     }
   }
-
-  // private static async sendWelcomeEmail(
-  //   user: IUser,
-  //   agency: IAgency,
-  //   temporaryPassword: string
-  // ): Promise<void> {
-  //   try {
-  //     // Prepare template data
-  //     const templateData: IAgencyWelcomeData = {
-  //       adminName: `${user.firstName} ${user.lastName}`,
-  //       agencyName: agency.name,
-  //       agencyType: agency.type,
-  //       jurisdiction: agency.jurisdiction,
-  //       jurisdictionLevel: agency.jurisdictionLevel,
-  //       email: agency.contactEmail,
-  //       temporaryPassword: temporaryPassword,
-  //       appName: this.APP_NAME!,
-  //       loginUrl: `https://${this.APP_NAME_LOWER}.gov.ng/login`,
-  //     };
-
-  //     const { subject, html } = EmailTemplateService.generateHtml(
-  //       EmailType.AGENCY_WELCOME,
-  //       templateData
-  //     );
-
-  //     await RabbitMQService.addEmailJob({
-  //       to: user.email,
-  //       subject,
-  //       html,
-  //     });
-
-  //     logger.info("Agency welcome email queued successfully", {
-  //       userId: user.id,
-  //       email: EmailService.maskEmail(user.email),
-  //       agencyId: agency.id,
-  //       agencyName: agency.name,
-  //     });
-  //   } catch (error) {
-  //     logger.error("Failed to queue agency welcome email", {
-  //       userId: user.id,
-  //       email: user.email,
-  //       agencyId: agency.id,
-  //       error: error instanceof Error ? error.message : "Unknown error",
-  //     });
-  //     throw error;
-  //   }
-  // }
 }

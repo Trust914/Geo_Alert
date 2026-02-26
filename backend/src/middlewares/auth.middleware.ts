@@ -111,8 +111,6 @@ export const authenticate = asyncHandler(async (req: Request, res: Response, nex
   next();
 });
 
-
-
 export const requireSuperAdmin = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
   if (!req.user?.agency) {
     throw AppError.forbidden("Agency association required for this action.", "SuperAdminMiddleware");
@@ -134,11 +132,7 @@ export const requireSuperAdmin = asyncHandler(async (req: Request, res: Response
   const isSuperAdmin = await checkIsSuperAdmin(req.user);
 
   if (!isSuperAdmin) {
-    throw AppError.forbidden(
-      "Super admin access required. Only NEMA administrators can perform this action.",
-      "SuperAdminMiddleware",
-      req.user
-    );
+    throw AppError.forbidden("Super admin access required. Only NEMA administrators can perform this action.", "SuperAdminMiddleware", req.user);
   }
 
   next();
@@ -165,10 +159,7 @@ export const requireAgencyAdminOrSuperAdmin = asyncHandler(async (req: Request, 
   const isOwnAgency = req.user.role === UserRole.ADMIN && req.user.agencyId === req.params.id;
 
   if (!isSuperAdmin && !isOwnAgency) {
-    throw AppError.forbidden(
-      "Access denied. Super admin or the agency's own admin required.",
-      "AgencyAdminMiddleware"
-    );
+    throw AppError.forbidden("Access denied. Super admin or the agency's own admin required.", "AgencyAdminMiddleware");
   }
 
   next();
@@ -225,13 +216,7 @@ export const requirePreAuth = asyncHandler(async (req: Request, res: Response, n
   throw AppError.unauthorized("Pre-authentication token or valid Reset token required", "PreAuthMiddleware");
 });
 
-
 const checkIsSuperAdmin = async (user: Request["user"]) => {
   const nemaAgencyId = await getNemaAgencyId();
-  return (
-    user?.agency?.type === AgencyType.FEDERAL &&
-    user?.agency?.jurisdictionLevel === JurisdictionLevel.NATIONAL &&
-    user?.role === UserRole.ADMIN &&
-    user?.agencyId === nemaAgencyId
-  );
+  return user?.agency?.type === AgencyType.FEDERAL && user?.agency?.jurisdictionLevel === JurisdictionLevel.NATIONAL && user?.role === UserRole.ADMIN && user?.agencyId === nemaAgencyId;
 };

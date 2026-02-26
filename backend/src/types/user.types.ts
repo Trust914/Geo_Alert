@@ -1,10 +1,4 @@
-import type {
-  AgencyType,
-  AgencyStatus,
-  JurisdictionLevel,
-  UserRole,
-  TwoFactorMethod,
-} from "../prisma/prisma/generated/enums.js";
+import type { AgencyType, AgencyStatus, JurisdictionLevel, UserRole, TwoFactorMethod } from "../prisma/prisma/generated/enums.js";
 import type { IApiResponse, IPaginatedApiResponse, IPaginationMeta } from "./api.response.js";
 import type { IPagination, ISortOptions } from "./common.types.js";
 
@@ -17,7 +11,7 @@ export interface IUser {
   role: UserRole;
   agencyId: string;
   mustChangePassword: boolean;
-  emailVerified:boolean;
+  emailVerified: boolean;
   isTwoFactorEnabled: boolean;
   twoFactorMethod: TwoFactorMethod | null;
   twoFactorSecret: string | null;
@@ -79,17 +73,17 @@ export interface IUpdateUserDTO {
 
 export interface IUserFilters {
   role?: UserRole;
-  isActive?: boolean | undefined; 
+  isActive?: boolean | undefined;
   search?: string;
-  pagination: IPagination
+  pagination: IPagination;
   sortOptions: ISortOptions;
   // currentPage?: number;
   // limit?: number;
 }
 
 export interface IAgencyListResponse {
-  data: ISafeUser[],
-  pagination: IPaginationMeta
+  data: ISafeUser[];
+  pagination: IPaginationMeta;
 }
 
 // --- 2. Response Contracts ---

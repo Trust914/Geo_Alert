@@ -1,19 +1,3 @@
-/**
- * BFF Service — Optimized with Industry-Standard Refresh Token Pattern
- *
- * Key improvements:
- * 1. Automatic access token refresh when nearing expiry
- * 2. Refresh token rotation only when refresh token is near expiry
- * 3. Sliding session window with activity tracking
- * 4. Proper token lifecycle management
- * 5. Enhanced security with fingerprint validation
- *
- * Token Lifecycle:
- * - Access Token:  15 minutes (auto-refreshed by middleware)
- * - Refresh Token: 7 days (rotated only when < 24h remaining)
- * - BFF Session:   30 days absolute, 24h idle timeout
- */
-
 import crypto from "crypto";
 import { prisma } from "../lib/prisma.js";
 import { ActionType, AgencyStatus, EntityType, TwoFactorMethod, UserRole } from "../prisma/prisma/generated/enums.js";
@@ -29,21 +13,7 @@ import { getCacheService } from "./cache.service.js";
 import { JWTService } from "./jwt.service.js";
 import { RefreshTokenService } from "./refreshToken.service.js";
 import { TwoFactorService } from "./twoFactorAuth.service.js";
-import type {
-  IBFF2FARequiredResponse,
-  IBFF2FAVerifyRequest,
-  IBFFAuditLogEntry,
-  IBFFAuditLogFilters,
-  IBFFLoginRequest,
-  IBFFLoginResponse,
-  IBFFSession,
-  IBFFSessionsListResponse,
-  IBFFSessionStatusResponse,
-  IBFFTemp2FASession,
-  IDeviceFingerprint,
-  ISessionValidationResult,
-  ITokenRefreshResult,
-} from "../types/bff.types.js";
+import type { IBFF2FARequiredResponse, IBFF2FAVerifyRequest, IBFFAuditLogEntry, IBFFAuditLogFilters, IBFFLoginRequest, IBFFLoginResponse, IBFFSession, IBFFSessionsListResponse, IBFFSessionStatusResponse, IBFFTemp2FASession, IDeviceFingerprint, ISessionValidationResult, ITokenRefreshResult } from "../types/bff.types.js";
 import { cacheConstants } from "../config/cache.constants.js";
 import { bffConfig, bffErrorCodes } from "../config/bff.config.js";
 import { serverConfig } from "../config/server.config.js";

@@ -72,7 +72,7 @@ export class SMSController {
           error: error.message,
           reportId: report.id,
         });
-      })
+      }),
     );
 
     await Promise.allSettled(queuePromises);

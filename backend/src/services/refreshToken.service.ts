@@ -1,4 +1,4 @@
-import {  serverConfig } from "../config/server.config.js";
+import { serverConfig } from "../config/server.config.js";
 import { prisma } from "../lib/prisma.js";
 import { ActionType, EntityType } from "../prisma/prisma/generated/enums.js";
 import { ACTION_DESCRIPTIONS } from "../types/actions.types.js";
@@ -39,7 +39,7 @@ export class RefreshTokenService {
         expiresAt,
       },
       ipAddress,
-      userAgent
+      userAgent,
     );
     return token;
   }

@@ -14,7 +14,7 @@ router.post("/register", validate(registerCitizenSchema), CitizenController.regi
 
 // --- Protected ---
 // router.use(authenticate);
-router.use(bffAuthenticate)
+router.use(bffAuthenticate);
 
 // Viewers can read citizen data to understand demographics
 router.get("/", paginationMiddleware, sortMiddleware, validate(citizenFilterSchema), CitizenController.getCitizens);

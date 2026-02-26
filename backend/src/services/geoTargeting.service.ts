@@ -30,10 +30,10 @@ export class GeoTargetingService {
       // 3. Handle legacy RADIUS structure (fallback for backward compatibility)
       if (target.targetType === TargetType.RADIUS) {
         // Check for flattened structure (frontend) or nested (backend type)
-        if ('latitude' in target && 'longitude' in target) {
+        if ("latitude" in target && "longitude" in target) {
           return {
             latitude: target.latitude as number,
-            longitude: target.longitude as number
+            longitude: target.longitude as number,
           };
         }
         // Fallback for nested centerPoint structure
@@ -41,7 +41,7 @@ export class GeoTargetingService {
           const center = (target as any).centerPoint;
           return {
             latitude: center.latitude,
-            longitude: center.longitude
+            longitude: center.longitude,
           };
         }
       }
@@ -55,13 +55,12 @@ export class GeoTargetingService {
 
       logger.warn("Unable to calculate incident location for target", { targetType: target.targetType });
       return null;
-
     } catch (error) {
       // FAIL-SAFE: Log error but return null.
       // Do not block Alert Creation just because the map pin failed to calculate.
       logger.error("GeoTargeting Error: Failed to calculate incident location", {
         error: (error as Error).message,
-        targetType: target.targetType
+        targetType: target.targetType,
       });
       return null;
     }
@@ -112,7 +111,7 @@ export class GeoTargetingService {
         const lat = point[1];
 
         // Basic sanity check to ensure we aren't adding NaNs
-        if (typeof lat === 'number' && typeof lng === 'number') {
+        if (typeof lat === "number" && typeof lng === "number") {
           lngSum += lng;
           latSum += lat;
           validPoints++;
@@ -123,7 +122,7 @@ export class GeoTargetingService {
     if (validPoints === 0) {
       // Return a default fallback (e.g., Nigeria Center) if calculation fails
       logger.warn("No valid coordinates found for centroid calculation, using default");
-      return { latitude: 9.0820, longitude: 8.6753 };
+      return { latitude: 9.082, longitude: 8.6753 };
     }
 
     return {
@@ -173,7 +172,7 @@ export class GeoTargetingService {
         WHERE id = $1
         LIMIT 1;
         `,
-        recordId
+        recordId,
       );
 
       if (result && result.length > 0) {
@@ -190,7 +189,7 @@ export class GeoTargetingService {
       logger.error("Failed to fetch admin area centroid from database", {
         error: (error as Error).message,
         tableName,
-        recordId
+        recordId,
       });
       return null;
     }
@@ -238,7 +237,7 @@ export class GeoTargetingService {
         FROM "${queryTable}"
         WHERE id = $1
         `,
-        queryId
+        queryId,
       );
 
       if (result.length > 0 && result[0].latitude && result[0].longitude) {
@@ -272,7 +271,7 @@ export class GeoTargetingService {
           ST_X(ST_Centroid(ST_GeomFromText($1, 4326))) as longitude,
           ST_Y(ST_Centroid(ST_GeomFromText($1, 4326))) as latitude
         `,
-        wkt
+        wkt,
       );
 
       if (result.length > 0) {

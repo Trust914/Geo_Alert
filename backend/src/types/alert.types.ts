@@ -1,17 +1,5 @@
 import type { Feature, Geometry, LineString, Point, Polygon } from "geojson";
-import {
-  ActionType,
-  EntityType,
-  type AlertCategory,
-  type AlertCertainty,
-  type AlertScope,
-  type AlertStatus,
-  type DeliveryStatus,
-  type MessageType,
-  type Severity,
-  type TargetType,
-  type Urgency,
-} from "../prisma/prisma/generated/enums.js";
+import { ActionType, EntityType, type AlertCategory, type AlertCertainty, type AlertScope, type AlertStatus, type DeliveryStatus, type MessageType, type Severity, type TargetType, type Urgency } from "../prisma/prisma/generated/enums.js";
 import type { IApiResponse, IPaginatedApiResponse } from "./api.response.js";
 import type { IPaginationMeta } from "./api.response.js";
 import type { IPagination, ISortOptions } from "./common.types.js";
@@ -96,22 +84,6 @@ export interface IGeoJSONLineString {
 
 export type IGeoJSONGeometry = IGeoJSONPoint | IGeoJSONPolygon | IGeoJSONLineString;
 
-// export interface IAlertTarget {
-//   id: string;
-//   alertId: string;
-//   targetType: TargetType;
-//   stateId: string | null;
-//   lgaId: string | null;
-//   wardId: string | null;
-//   radiusMeters: number | null;
-//   centerPoint: Point | null;
-//   targetPolygon: Polygon | null;
-//   targetPath: LineString | null;
-//   pathBufferMeters: number | null;
-//   estimatedRecipients: number | null;
-//   createdAt: Date;
-// }
-
 export type IAlertTarget = {
   targetType: TargetType;
   locationName?: string;
@@ -130,42 +102,6 @@ export type IAlertTarget = {
   lgaId?: string;
   wardId?: string;
 };
-
-// export type IAlertTarget =
-//   // 1. Admin Areas
-//   | {
-//       targetType: typeof TargetType.STATE | typeof TargetType.LGA | typeof TargetType.WARD;
-//       stateId?: string;
-//       lgaId?: string;
-//       wardId?: string;
-//       locationName?: string;
-//     }
-//   // 2. Radius (Flat) - Used by frontend forms often
-//   | {
-//       targetType: typeof TargetType.RADIUS;
-//       latitude: number;
-//       longitude: number;
-//       radius: number;
-//       locationName?: string;
-//       centerPoint?: never; // Ensure mutual exclusivity if needed
-//     }
-//   // 3. Radius (Nested) - Used by some backend DTOs/validators
-//   | {
-//       targetType: typeof TargetType.RADIUS;
-//       centerPoint: { latitude: number; longitude: number };
-//       radius: number;
-//       locationName?: string;
-//       latitude?: never;
-//       longitude?: never;
-//     }
-//   // 4. Polygon / Path (Custom Geometry)
-//   | {
-//       targetType: typeof TargetType.POLYGON | typeof TargetType.PATH;
-//       // GeoJSON style array of coordinates: [[lng, lat], [lng, lat], ...]
-//       coordinates: CoordinatePair[];
-//       locationName?: string;
-//       bufferMeters?: number; // Specific to PATH
-//     };
 
 export interface IRecipientEstimateData {
   estimatedRecipients: number;
@@ -212,55 +148,6 @@ export interface IAlertFilters {
   pagination: IPagination;
   sortOptions: ISortOptions;
 }
-
-// export interface IAlertPreview {
-//   alert: {
-//     id: string;
-//     category: AlertCategory;
-//     severity: Severity;
-//     urgency: Urgency;
-//     headline: string;
-//     description: string;
-//     instruction?: string;
-//     status: AlertStatus;
-//     expiresAt?: Date;
-//   };
-//   agency: {
-//     id: string;
-//     name: string;
-//     type: string;
-//   };
-//   createdBy: {
-//     firstName: string;
-//     lastName: string;
-//     email: string;
-//   };
-//   targets: Array<{
-//     id: string;
-//     targetType: TargetType;
-//     estimatedRecipients?: number;
-//     locationname: string,
-//     // state?: { name: string };
-//     // lga?: { name: string };
-//     // ward?: { name: string };
-//   }>;
-//   smsPreview: {
-//     message: string;
-//     characterCount: number;
-//     messageCount: number;
-//     estimatedCost: number;
-//   };
-//   deliveries: Array<{
-//     id: string;
-//     status: string;
-//     queuedAt: Date;
-//     sentAt?: Date;
-//     deliveredAt?: Date;
-//     failureReason?: string;
-//   }>;
-//   estimatedRecipients: number;
-//   capXml: string;
-// }
 
 export interface IAlertStats {
   total: number;

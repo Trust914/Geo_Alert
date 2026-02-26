@@ -36,7 +36,7 @@ export interface ISMSDeliveryStatsData {
   sent: number;
   queued: number;
   deliveryRate: number; // Percentage 0-100
-  failureRate: number;  // Percentage 0-100
+  failureRate: number; // Percentage 0-100
   averageDeliveryTime?: number | undefined; // Seconds
 }
 

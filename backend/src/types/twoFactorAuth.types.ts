@@ -1,7 +1,6 @@
 import { TwoFactorMethod } from "../prisma/prisma/generated/enums.js";
 import type { IApiResponse } from "./api.response.js";
 
-
 // --- 1. Safe Data Shapes ---
 
 export interface ITOTPSetupData {

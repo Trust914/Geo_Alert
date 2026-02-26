@@ -8,7 +8,6 @@ import type { IAppErrorParams } from "../types/common.types.js";
 import type { IRPCRequest, ISubscribeOptions } from "../types/rabbitmq.types.js";
 import { rabbitmqConfig } from "../config/rabbitmq.config.js";
 
-
 // Global connection management
 let globalConnection: amqp.ChannelModel | null = null;
 let globalChannel: amqp.Channel | null = null;
@@ -24,10 +23,7 @@ const activeRPCRequests: Record<string, IRPCRequest> = {};
 /**
  * Connect to RabbitMQ with connection reuse and proper error handling
  */
-export const connectToRabbitMQ = async (
-  maxAttempts = 5,
-  delay = 2000
-): Promise<{ connection: amqp.ChannelModel; channel: amqp.Channel }> => {
+export const connectToRabbitMQ = async (maxAttempts = 5, delay = 2000): Promise<{ connection: amqp.ChannelModel; channel: amqp.Channel }> => {
   // Return existing connection if available
   if (globalConnection && globalChannel) {
     logger.debug(`Using existing RabbitMQ connection`);
@@ -61,16 +57,11 @@ export const connectToRabbitMQ = async (
   }
 };
 
-const connectWithRetries = async (
-  maxAttempts: number,
-  delay: number
-): Promise<{ connection: amqp.ChannelModel; channel: amqp.Channel }> => {
+const connectWithRetries = async (maxAttempts: number, delay: number): Promise<{ connection: amqp.ChannelModel; channel: amqp.Channel }> => {
   let attempt = 1;
   while (attempt <= maxAttempts) {
     try {
-      logger.info(
-        `Attempt ${attempt}/${maxAttempts}: Connecting to RabbitMQ...`
-      );
+      logger.info(`Attempt ${attempt}/${maxAttempts}: Connecting to RabbitMQ...`);
       // Connect to RabbitMQ
       const connection: amqp.ChannelModel = await amqp.connect(rabbitmqConfig.connection);
       // Handle connection events
@@ -92,9 +83,7 @@ const connectWithRetries = async (
       return { connection, channel };
     } catch (error) {
       const errObj = error instanceof Error ? error : new Error(String(error));
-      logger.error(
-      `RabbitMQ connection attempt ${attempt} failed: ${errObj.message}`,{error: errObj}
-      );
+      logger.error(`RabbitMQ connection attempt ${attempt} failed: ${errObj.message}`, { error: errObj });
       // Last attempt, throw error
       if (attempt === maxAttempts) {
         const errParams: IAppErrorParams = {
@@ -115,9 +104,7 @@ const connectWithRetries = async (
       attempt++;
     }
   }
-  throw new Error(
-    `Failed to connect to RabbitMQ after ${maxAttempts} attempts`
-  );
+  throw new Error(`Failed to connect to RabbitMQ after ${maxAttempts} attempts`);
 };
 
 /**
@@ -146,7 +133,7 @@ const resetGlobalConnection = (): void => {
           statusCode: statusCodes.INTERNAL_SERVER_ERROR,
           handler: "RabbitMQUtil",
           isOperational: true,
-        })
+        }),
       );
 
       delete activeRPCRequests[correlationId];
@@ -166,13 +153,10 @@ export const initializeRabbitMQ = async (): Promise<{
 
     // Create response queue if not already set up
     if (!globalResponseQueue) {
-      const responseQueue: amqp.Replies.AssertQueue = await channel.assertQueue(
-        "",
-        {
-          exclusive: true,
-          autoDelete: true,
-        }
-      );
+      const responseQueue: amqp.Replies.AssertQueue = await channel.assertQueue("", {
+        exclusive: true,
+        autoDelete: true,
+      });
 
       // Set up consumer for RPC responses
       await channel.consume(responseQueue.queue, (msg) => {
@@ -200,7 +184,7 @@ export const initializeRabbitMQ = async (): Promise<{
                 statusCode: statusCodes.INTERNAL_SERVER_ERROR,
                 handler: "RabbitMQUtil",
                 isOperational: true,
-              })
+              }),
             );
           }
         }
@@ -209,9 +193,7 @@ export const initializeRabbitMQ = async (): Promise<{
       });
 
       globalResponseQueue = responseQueue.queue;
-      logger.info(
-        `RabbitMQ response queue initialized: ${globalResponseQueue}`
-      );
+      logger.info(`RabbitMQ response queue initialized: ${globalResponseQueue}`);
     }
 
     return { channel, responseQueue: globalResponseQueue };
@@ -224,7 +206,7 @@ export const initializeRabbitMQ = async (): Promise<{
       statusCode: statusCodes.INTERNAL_SERVER_ERROR,
       handler: "RabbitMQUtil",
       isOperational: true,
-      details:errObj
+      details: errObj,
     });
   }
 };
@@ -232,11 +214,7 @@ export const initializeRabbitMQ = async (): Promise<{
 /**
  * Publish a fire-and-forget event (no response expected)
  */
-export const publishEvent = async (
-  exchangeName: string,
-  routingKey: string,
-  message: Record<string, any>
-): Promise<boolean> => {
+export const publishEvent = async (exchangeName: string, routingKey: string, message: Record<string, any>): Promise<boolean> => {
   try {
     const { channel } = await connectToRabbitMQ();
 
@@ -244,12 +222,7 @@ export const publishEvent = async (
     await channel.assertExchange(exchangeName, "topic", { durable: true });
 
     // Publish message
-    channel.publish(
-      exchangeName,
-      routingKey,
-      Buffer.from(JSON.stringify(message)),
-      { persistent: true }
-    );
+    channel.publish(exchangeName, routingKey, Buffer.from(JSON.stringify(message)), { persistent: true });
 
     logger.debug(`Published the event ${routingKey} to the exchange ${exchangeName}.`);
     return true;
@@ -268,12 +241,7 @@ export const publishEvent = async (
 /**
  * Send an RPC request and wait for response
  */
-export const sendRPCRequest = async (
-  exchangeName: string,
-  routingKey: string,
-  message: Record<string, any> | string,
-  timeout: number = 30000
-): Promise<any> => {
+export const sendRPCRequest = async (exchangeName: string, routingKey: string, message: Record<string, any> | string, timeout: number = 30000): Promise<any> => {
   try {
     // Ensure connection and response queue are set up
     if (!globalResponseQueue) {
@@ -300,7 +268,7 @@ export const sendRPCRequest = async (
             statusCode: statusCodes.INTERNAL_SERVER_ERROR,
             handler: "RabbitMQUtil",
             isOperational: true,
-          })
+          }),
         );
       }, timeout);
 
@@ -334,12 +302,7 @@ export const sendRPCRequest = async (
 /**
  * Subscribe to events with a callback for handling
  */
-export const subscribeToEvent = async (
-  exchangeName: string,
-  routingKey: string,
-  callbackFn: (content: any) => Promise<void | any>,
-  options: ISubscribeOptions = {}
-): Promise<string> => {
+export const subscribeToEvent = async (exchangeName: string, routingKey: string, callbackFn: (content: any) => Promise<void | any>, options: ISubscribeOptions = {}): Promise<string> => {
   const { queueName = "", durable = true, prefetch = 10 } = options;
 
   try {
@@ -352,8 +315,7 @@ export const subscribeToEvent = async (
     await channel.assertExchange(exchangeName, "topic", { durable: true });
 
     // Create or use existing queue
-    const actualQueueName =
-      queueName || `subscriber-${exchangeName}-${routingKey}`;
+    const actualQueueName = queueName || `subscriber-${exchangeName}-${routingKey}`;
     const queue = await channel.assertQueue(actualQueueName, {
       durable,
       ...(queueName ? {} : { exclusive: true, autoDelete: true }),
@@ -362,9 +324,7 @@ export const subscribeToEvent = async (
     // Bind queue to exchange
     await channel.bindQueue(queue.queue, exchangeName, routingKey);
 
-    logger.info(
-      `Subscribed to ${exchangeName}.${routingKey} on queue ${queue.queue}`
-    );
+    logger.info(`Subscribed to ${exchangeName}.${routingKey} on queue ${queue.queue}`);
 
     // Set up consumer
     await channel.consume(
@@ -379,11 +339,7 @@ export const subscribeToEvent = async (
           if (msg.properties.replyTo && msg.properties.correlationId) {
             const response = await callbackFn(content);
 
-            channel.sendToQueue(
-              msg.properties.replyTo,
-              Buffer.from(JSON.stringify(response)),
-              { correlationId: msg.properties.correlationId }
-            );
+            channel.sendToQueue(msg.properties.replyTo, Buffer.from(JSON.stringify(response)), { correlationId: msg.properties.correlationId });
           } else {
             // Normal message processing
             await callbackFn(content);
@@ -397,7 +353,7 @@ export const subscribeToEvent = async (
           channel.nack(msg, false, false);
         }
       },
-      { noAck: false }
+      { noAck: false },
     );
 
     return queue.queue;

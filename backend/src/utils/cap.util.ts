@@ -7,52 +7,12 @@ export class CAPXMLGenerator {
    * Generate CAP 1.2 compliant XML
    */
   static generate(data: CAPAlertData): string {
-    const root = create({ version: "1.0", encoding: "UTF-8" })
-      .ele("alert", { xmlns: "urn:oasis:names:tc:emergency:cap:1.2" })
-      .ele("identifier")
-      .txt(data.identifier)
-      .up()
-      .ele("sender")
-      .txt(data.sender)
-      .up()
-      .ele("sent")
-      .txt(data.sent.toISOString())
-      .up()
-      .ele("status")
-      .txt(data.status)
-      .up()
-      .ele("msgType")
-      .txt(data.msgType)
-      .up()
-      .ele("scope")
-      .txt(data.scope)
-      .up();
+    const root = create({ version: "1.0", encoding: "UTF-8" }).ele("alert", { xmlns: "urn:oasis:names:tc:emergency:cap:1.2" }).ele("identifier").txt(data.identifier).up().ele("sender").txt(data.sender).up().ele("sent").txt(data.sent.toISOString()).up().ele("status").txt(data.status).up().ele("msgType").txt(data.msgType).up().ele("scope").txt(data.scope).up();
 
     // Add info block
     const info = root.ele("info");
 
-    info
-      .ele("category")
-      .txt(this.mapCategory(data.category))
-      .up()
-      .ele("event")
-      .txt(data.event)
-      .up()
-      .ele("urgency")
-      .txt(data.urgency)
-      .up()
-      .ele("severity")
-      .txt(data.severity)
-      .up()
-      .ele("certainty")
-      .txt(data.certainty)
-      .up()
-      .ele("headline")
-      .txt(data.headline)
-      .up()
-      .ele("description")
-      .txt(data.description)
-      .up();
+    info.ele("category").txt(this.mapCategory(data.category)).up().ele("event").txt(data.event).up().ele("urgency").txt(data.urgency).up().ele("severity").txt(data.severity).up().ele("certainty").txt(data.certainty).up().ele("headline").txt(data.headline).up().ele("description").txt(data.description).up();
 
     // Optional instruction
     if (data.instruction) {

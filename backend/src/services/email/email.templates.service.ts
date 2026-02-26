@@ -1,13 +1,5 @@
 import { serverConfig } from "../../config/server.config.js";
-import {
-  EmailType,
-  type IAgencyActivationData,
-  type IAgencyWelcomeData,
-  type IPasswordResetData,
-  type ITwoFactorData,
-  type IUserActivationData,
-  type IUserWelcomeData,
-} from "../../types/email.types.js";
+import { EmailType, type IAgencyActivationData, type IAgencyWelcomeData, type IPasswordResetData, type ITwoFactorData, type IUserActivationData, type IUserWelcomeData } from "../../types/email.types.js";
 
 export class EmailTemplateService {
   static readonly APP_NAME = serverConfig.app.name.split("_")[0];
@@ -63,10 +55,7 @@ export class EmailTemplateService {
   /**
    * Public Generator Method
    */
-  static generateHtml(
-    type: EmailType,
-    data: any
-  ): { subject: string; html: string } {
+  static generateHtml(type: EmailType, data: any): { subject: string; html: string } {
     // Inject App Name into data if missing
     const templateData = { ...data, appName: this.APP_NAME };
 
@@ -74,22 +63,16 @@ export class EmailTemplateService {
       case EmailType.TWO_FACTOR_SETUP:
         return {
           subject: `${this.APP_NAME} - 2FA Verification Code`,
-          html: this.getMasterLayout(
-            "Verify Email",
-            this.render2FASetup(templateData)
-          ),
+          html: this.getMasterLayout("Verify Email", this.render2FASetup(templateData)),
         };
 
       case EmailType.TWO_FACTOR_LOGIN:
         return {
           subject: `${this.APP_NAME} - Login Code`,
-          html: this.getMasterLayout(
-            "Login Verification",
-            this.render2FALogin(templateData)
-          ),
+          html: this.getMasterLayout("Login Verification", this.render2FALogin(templateData)),
         };
 
-        //PROTECTED ACTIONS
+      //PROTECTED ACTIONS
       case EmailType.TWO_FACTOR_ACTION:
         return {
           subject: `${this.APP_NAME} - Security Verification Code`,
@@ -99,46 +82,31 @@ export class EmailTemplateService {
       case EmailType.USER_WELCOME:
         return {
           subject: `Welcome to ${this.APP_NAME}`,
-          html: this.getMasterLayout(
-            "Welcome Aboard",
-            this.renderUserWelcome(templateData)
-          ),
+          html: this.getMasterLayout("Welcome Aboard", this.renderUserWelcome(templateData)),
         };
 
       case EmailType.AGENCY_WELCOME:
         return {
           subject: `Agency Registration Successful - ${this.APP_NAME}`,
-          html: this.getMasterLayout(
-            "Agency Registered",
-            this.renderAgencyWelcome(templateData)
-          ),
+          html: this.getMasterLayout("Agency Registered", this.renderAgencyWelcome(templateData)),
         };
 
       case EmailType.PASSWORD_RESET:
         return {
           subject: `${this.APP_NAME} - Password Reset Request`,
-          html: this.getMasterLayout(
-            "Reset Password",
-            this.renderPasswordReset(templateData)
-          ),
+          html: this.getMasterLayout("Reset Password", this.renderPasswordReset(templateData)),
         };
 
       case EmailType.USER_ACTIVATION:
         return {
           subject: `${this.APP_NAME} - Account Activation`,
-          html: this.getMasterLayout(
-            "Account Activation",
-            this.renderUserActivation(templateData)
-          ),
+          html: this.getMasterLayout("Account Activation", this.renderUserActivation(templateData)),
         };
 
       case EmailType.AGENCY_ACTIVATION:
         return {
           subject: `${this.APP_NAME} - Agency Activation`,
-          html: this.getMasterLayout(
-            "Agency Activation",
-            this.renderAgencyActivation(templateData)
-          ),
+          html: this.getMasterLayout("Agency Activation", this.renderAgencyActivation(templateData)),
         };
 
       default:
@@ -158,7 +126,7 @@ export class EmailTemplateService {
         <div class="code">${data.code}</div>
       </div>
 
-      <p>This code will expire in <strong>${data.expiryMinutes } ${data.expiryMinutes! > 1 ? "minutes" : "minute"}</strong>.</p>
+      <p>This code will expire in <strong>${data.expiryMinutes} ${data.expiryMinutes! > 1 ? "minutes" : "minute"}</strong>.</p>
 
       <div class="warning-box">
         <strong>Security Notice:</strong> Never share this code with anyone. Our support team will never ask for it.
@@ -175,7 +143,7 @@ export class EmailTemplateService {
         <div class="code">${data.code}</div>
       </div>
 
-      <p>This code will expire in <strong>${data.expiryMinutes } ${data.expiryMinutes! > 1 ? "minutes" : "minute"}</strong>.</p>
+      <p>This code will expire in <strong>${data.expiryMinutes} ${data.expiryMinutes! > 1 ? "minutes" : "minute"}</strong>.</p>
 
       <p>If you did not request this code, please secure your account immediately.</p>
     `;
@@ -261,18 +229,26 @@ export class EmailTemplateService {
       <p>Hello ${data.firstName},</p>
       <p>We received a request to reset the password for your account.</p>
 
-      ${data.temporaryPassword ? `
+      ${
+        data.temporaryPassword
+          ? `
         <div class="code-box">
           <p style="margin:0; font-size:14px; color:#666;">Temporary Password:</p>
           <div class="code" style="font-size: 24px;">${data.temporaryPassword}</div>
         </div>
-      ` : ""}
+      `
+          : ""
+      }
 
-      ${data.resetUrl ? `
+      ${
+        data.resetUrl
+          ? `
         <p style="text-align: center;">
           <a href="${data.resetUrl}" class="btn">Reset Password</a>
         </p>
-      ` : ""}
+      `
+          : ""
+      }
 
       <div class="warning-box">
         If you did not request this change, please contact your agency administrator immediately.

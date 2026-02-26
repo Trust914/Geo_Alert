@@ -12,9 +12,10 @@
     "seed.geo.wards": "npx tsx --env-file=.env src/seed/geoSpatial.ts ward",
     "seed.admin": "npx tsx --env-file=.env src/seed/firstAdmin.ts",
     "seed.population": "npx tsx --env-file=.env src/seed/population.ts",
-    "dev": "tsx watch --env-file=.env src/index.ts",
-    "build": "npm run clean && esbuild src/index.ts --bundle --platform=node --format=esm --outfile=dist/index.js --external:@prisma/client --banner:js=\"import { createRequire } from 'module'; const require = createRequire(import.meta.url);",
-    "start": "npm run build && node --trace-warnings --env-file=.env dist/index.js",
+    "build": "npm run clean && esbuild src/index.ts --bundle --platform=node --format=esm --outfile=dist/index.js --external:@prisma/client --external:argon2 --banner:js=\"import { createRequire } from 'module'; const require = createRequire(import.meta.url);\"",
+    "start.dev": "tsx watch --env-file=envs/.env.development src/index.ts",
+    "start.staging": "npm run build && node --trace-warnings --env-file=envs/.env.staging dist/index.js",
+    "start.production": "npm run build && node --trace-warnings --env-file=envs/.env.production dist/index.js",
     "prisma.generate": "npx prisma generate --schema=./src/prisma/",
     "prisma.migrate": "npx prisma migrate dev",
     "clean": "rm -rf dist"

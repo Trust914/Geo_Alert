@@ -70,33 +70,15 @@ export class CacheService {
     }
   }
 
-  // async deletePattern(pattern: string): Promise<number> {
-  //   try {
-  //     const keys = await this.redis.keys(`${this.APP_NAME}:${pattern}`);
-  //     if (keys.length === 0) return 0;
-
-  //     const deleted = await this.redis.del(...keys);
-  //     return deleted;
-  //   } catch (error) {
-  //     logger.error("Cache delete pattern error", {
-  //       pattern,
-  //       error: error instanceof Error ? error.message : String(error),
-  //     });
-  //     return 0;
-  //   }
-  // }
-
-   async deletePattern(pattern: string): Promise<number> {
+  async deletePattern(pattern: string): Promise<number> {
     try {
       // If pattern already starts with APP_NAME, use it as-is
       // Otherwise, prepend APP_NAME
-      const fullPattern = pattern.startsWith(this.APP_NAME as string)
-        ? pattern
-        : `${this.APP_NAME}:${pattern}`;
+      const fullPattern = pattern.startsWith(this.APP_NAME as string) ? pattern : `${this.APP_NAME}:${pattern}`;
 
       logger.debug("Deleting cache pattern", {
         originalPattern: pattern,
-        fullPattern
+        fullPattern,
       });
 
       const keys = await this.redis.keys(fullPattern);
@@ -104,7 +86,7 @@ export class CacheService {
       logger.debug("Found keys to delete", {
         pattern: fullPattern,
         count: keys.length,
-        keys: keys.slice(0, 10) // Log first 10 for debugging
+        keys: keys.slice(0, 10), // Log first 10 for debugging
       });
 
       if (keys.length === 0) return 0;
@@ -113,7 +95,7 @@ export class CacheService {
 
       logger.info("Cache keys deleted", {
         pattern: fullPattern,
-        deleted
+        deleted,
       });
 
       return deleted;
@@ -210,7 +192,6 @@ export class CacheService {
     return this.deletePattern(pattern);
   }
 }
-
 
 // Singleton instance
 let cacheServiceInstance: CacheService | null = null;

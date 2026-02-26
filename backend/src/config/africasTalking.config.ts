@@ -41,4 +41,4 @@ export const AT_CONFIG = {
   maxBatch: AT_MAX_BATCH,
 };
 
-logger.debug("Africa's Talking configuration loaded successfully", AT_CONFIG);
+// logger.debug("Africa's Talking configuration loaded successfully", AT_CONFIG);

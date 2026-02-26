@@ -8,8 +8,8 @@ import { AppError } from "../utils/error.util.js";
 import { serverConfig } from "../config/server.config.js";
 
 export class JWTService {
-  private static readonly accessTokenExpiresIn = serverConfig.jwt.accessTokenExpiry  as jwt.SignOptions["expiresIn"];
-  private static readonly refreshTokenExpiresIn = serverConfig.jwt.refreshTokenExpiry  as jwt.SignOptions["expiresIn"];
+  private static readonly accessTokenExpiresIn = serverConfig.jwt.accessTokenExpiry as jwt.SignOptions["expiresIn"];
+  private static readonly refreshTokenExpiresIn = serverConfig.jwt.refreshTokenExpiry as jwt.SignOptions["expiresIn"];
   private static readonly preAuthTokenExpiresIn = serverConfig.jwt.twoFactorPendingExpiry as jwt.SignOptions["expiresIn"];
 
   // Base options shared by both
@@ -187,7 +187,7 @@ export class JWTService {
   static setCookie = <T>(res: Response, valueToSet: T, valueName: string, maxAge: number): void => {
     res.cookie(valueName, valueToSet, {
       httpOnly: true,
-      secure: serverConfig.app.isProd  || serverConfig.app.isStaging,
+      secure: serverConfig.app.isProd || serverConfig.app.isStaging,
       sameSite: serverConfig.app.isProd || serverConfig.app.isStaging ? "none" : "lax",
       partitioned: serverConfig.app.isProd || serverConfig.app.isStaging,
       maxAge: maxAge * 1000,

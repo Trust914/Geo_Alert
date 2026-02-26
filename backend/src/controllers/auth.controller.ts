@@ -86,7 +86,6 @@ export class AuthController {
 
     logger.debug("Refresh access token successful", {
       userId: req.user?.id,
-
     });
 
     res.status(statusCodes.OK).json({

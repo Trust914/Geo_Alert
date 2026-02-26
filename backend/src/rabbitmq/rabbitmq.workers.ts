@@ -285,7 +285,7 @@ async function startAlertBatchWorker(): Promise<void> {
           // If every record is accounted for and none are still QUEUED, mark the alert DELIVERED
           // "SENT" here means SMS gateway accepted it but hasn't confirmed delivery yet —
           // we still mark the alert DELIVERED at the alert level since our job is done.
-          if (total > 0 && (delivered + failed + sent) === total) {
+          if (total > 0 && delivered + failed + sent === total) {
             await prisma.alert.update({
               where: { id: alertId },
               data: { status: AlertStatus.DELIVERED, updatedAt: new Date() },
@@ -313,91 +313,6 @@ async function startAlertBatchWorker(): Promise<void> {
 
   logger.info("Alert batch worker started");
 }
-
-// /**
-//  * WORKER 3: Process Delivery Reports
-//  */
-// async function startDeliveryReportWorker(): Promise<void> {
-//   await subscribeToEvent(RABBITMQ_EXCHANGE, rabbitmqEvents.PROCESS_DELIVERY_EVENT, async (data: ATDeliveryReport) => {
-//     logger.debug("Processing delivery report", { data });
-//     const { id, status, failureReason } = data;
-//     // logger.debug("Processing delivery report", { id, status }); // Optional: Reduce log spam
-
-//     try {
-//       // STEP 1: Fast initial check
-//       let record = await prisma.deliveredAlert.findUnique({
-//         where: { gatewayMessageId: id },
-//       });
-
-//       // STEP 2: If record exists, process immediately
-//       if (record) {
-//         await SMSService.processDeliveryReport({
-//           id,
-//           status,
-//           failureReason,
-//           phoneNumber: data.phoneNumber,
-//           networkCode: data.networkCode,
-//           retryCount: data.retryCount,
-//         });
-//         return;
-//       }
-
-//       // STEP 3: If not in DB, IMMEDIATE Cache Check
-//       // (Fixes the 6-second delay for Welcome SMS)
-//       const cacheService = getCacheService();
-//       const isTransactional = await cacheService.get(CACHE_KEYS.SMS.TRANSACTIONAL, id);
-
-//       if (isTransactional) {
-//         logger.info("Delivery report skipped (Transactional SMS)", {
-//           id,
-//           type: isTransactional,
-//         });
-//         return;
-//       }
-
-//       // STEP 4: Race Condition Handling (Retry Loop)
-//       // We only reach here if it's NOT in DB and NOT a Welcome SMS.
-//       // It might be a real alert that is slow to commit to DB.
-//       let attempts = 0;
-//       while (attempts < 2 && !record) {
-//         // Reduced to 2 retries since we did 1 initial check
-//         await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2s
-
-//         record = await prisma.deliveredAlert.findUnique({
-//           where: { gatewayMessageId: id },
-//         });
-
-//         if (record) break;
-//         attempts++;
-//       }
-
-//       // STEP 5: Final Processing after retry
-//       if (record) {
-//         await SMSService.processDeliveryReport({
-//           id,
-//           status,
-//           failureReason,
-//           phoneNumber: data.phoneNumber,
-//           networkCode: data.networkCode,
-//           retryCount: data.retryCount,
-//         });
-//         logger.debug("Delivery report processed after retry", { id });
-//       } else {
-//         // Genuine error: Valid alert record never appeared
-//         logger.warn("Delivery record not found after retries", { id });
-//       }
-//     } catch (error) {
-//       logger.error("Delivery report processing failed", {
-//         id,
-//         error: (error as Error).message,
-//       });
-//       // Don't throw if you want to avoid infinite requeuing of bad data
-//       // throw error;
-//     }
-//   });
-
-//   logger.info("Delivery report worker started");
-// }
 
 /**
  * WORKER 3: Process Delivery Reports

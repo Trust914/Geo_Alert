@@ -28,7 +28,7 @@ export class LocationService {
 
         return states.map((s) => ({ ...s, type: "STATE" }));
       },
-      cacheConstants.ttl.WEEK // 7 DAYS
+      cacheConstants.ttl.WEEK, // 7 DAYS
     );
   }
 
@@ -56,7 +56,7 @@ export class LocationService {
 
         return lgas.map((l) => ({ ...l, type: "LGA" }));
       },
-      cacheConstants.ttl.WEEK // 7 DAYS
+      cacheConstants.ttl.WEEK, // 7 DAYS
     );
   }
 
@@ -84,7 +84,7 @@ export class LocationService {
 
         return wards.map((w) => ({ ...w, type: "WARD" }));
       },
-      cacheConstants.ttl.WEEK // 7 DAYS
+      cacheConstants.ttl.WEEK, // 7 DAYS
     );
   }
 }

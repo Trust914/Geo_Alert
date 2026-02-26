@@ -27,10 +27,7 @@ export const verify2FASchema = z.object({
         error: "Verification code is required",
       })
       .trim()
-      .refine(
-        (code) => /^\d{6}$/.test(code) || /^[A-Z0-9]{8}$/.test(code),
-        "Code must be either 6 digits (OTP/TOTP) or 8 characters (backup code)"
-      ),
+      .refine((code) => /^\d{6}$/.test(code) || /^[A-Z0-9]{8}$/.test(code), "Code must be either 6 digits (OTP/TOTP) or 8 characters (backup code)"),
 
     isBackupCode: z.boolean().optional().default(false),
   }),
@@ -74,8 +71,7 @@ export const hardResetPasswordSchema = z.object({
     .refine((data) => data.newPassword === data.confirmPassword, {
       message: "Passwords do not match",
       path: ["confirmPassword"],
-    })
-
+    }),
 });
 
 export const auditLogFiltersSchema = z.object({
@@ -86,12 +82,7 @@ export const auditLogFiltersSchema = z.object({
     startDate: z.iso.date().optional(),
     endDate: z.iso.date().optional(),
     currentPage: z.coerce.number().int().min(1).default(1),
-    limit: z.coerce
-      .number()
-      .int()
-      .min(1)
-      .max(100)
-      .default(serverConfig.pagination.defaultLimit),
+    limit: z.coerce.number().int().min(1).max(100).default(serverConfig.pagination.defaultLimit),
   }),
 });
 
@@ -104,12 +95,7 @@ export const agencyAuditLogFiltersSchema = z.object({
       startDate: z.iso.datetime().optional(),
       endDate: z.iso.datetime().optional(),
       currentPage: z.coerce.number().int().min(1).default(1),
-      limit: z.coerce
-        .number()
-        .int()
-        .min(1)
-        .max(100)
-        .default(serverConfig.pagination.defaultLimit),
+      limit: z.coerce.number().int().min(1).max(100).default(serverConfig.pagination.defaultLimit),
     })
     .refine(
       (data) => {
@@ -121,7 +107,7 @@ export const agencyAuditLogFiltersSchema = z.object({
       {
         message: "End date must be after start date",
         path: ["endDate"],
-      }
+      },
     ),
 });
 
@@ -137,8 +123,7 @@ export const verifyResetTokenSchema = z.object({
       .min(1, "Reset token cannot be empty")
       .max(256, "Invalid token format"),
 
-    userId: z
-      .cuid2("Invalid user ID format"),
+    userId: z.cuid2("Invalid user ID format"),
   }),
 });
 

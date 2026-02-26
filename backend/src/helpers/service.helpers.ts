@@ -228,7 +228,6 @@ export const verifyUserPassword = async (userId: string, passwordString: string)
 
   if (!user) throw AppError.notFound("User not found");
 
-
   const isValid = await JWTService.verifyPasswordArgon2(user.passwordHash!, passwordString);
 
   if (!isValid) {

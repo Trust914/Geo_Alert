@@ -72,7 +72,7 @@ export interface IAgencyFilters {
   status?: AgencyStatus;
   search?: string;
   pagination: IPagination;
-  sortOptions: ISortOptions
+  sortOptions: ISortOptions;
 }
 
 // --- Data Shapes (What the Service Returns) ---

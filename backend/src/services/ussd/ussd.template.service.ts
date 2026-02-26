@@ -11,18 +11,14 @@ export class USSDTemplateService {
 
   // ==================== WELCOME & START ====================
 
-  static welcomeRegistered(
-    firstName: string,
-    state: string,
-    lga: string
-  ): string {
+  static welcomeRegistered(firstName: string, state: string, lga: string): string {
     return `CON Welcome back, ${firstName}! You are registered for alerts in ${state}, ${lga}.
 
             1. Update Information
             2. Unsubscribe from Alerts
             3. Help
             0. Exit`;
-          }
+  }
 
   static welcomeUnsubscribed(firstName: string): string {
     return `CON Welcome back, ${firstName}!
@@ -74,13 +70,7 @@ export class USSDTemplateService {
 
   // ==================== PAGINATION ====================
 
-  static statesPage(
-    states: Array<{ id: string; name: string }>,
-    page: number,
-    totalPages: number,
-    hasPrev: boolean,
-    hasNext: boolean
-  ): string {
+  static statesPage(states: Array<{ id: string; name: string }>, page: number, totalPages: number, hasPrev: boolean, hasNext: boolean): string {
     let response = `CON Select your state (Page ${page + 1}/${totalPages}):\n`;
 
     states.forEach((state, index) => {
@@ -97,17 +87,8 @@ export class USSDTemplateService {
     return response;
   }
 
-  static lgasPage(
-    lgas: Array<{ id: string; name: string }>,
-    stateName: string,
-    page: number,
-    totalPages: number,
-    hasPrev: boolean,
-    hasNext: boolean
-  ): string {
-    let response = `CON Select your LGA in ${stateName} (Page ${
-      page + 1
-    }/${totalPages}):\n`;
+  static lgasPage(lgas: Array<{ id: string; name: string }>, stateName: string, page: number, totalPages: number, hasPrev: boolean, hasNext: boolean): string {
+    let response = `CON Select your LGA in ${stateName} (Page ${page + 1}/${totalPages}):\n`;
 
     lgas.forEach((lga, index) => {
       response += `${index + 1}. ${lga.name}\n`;
@@ -123,17 +104,8 @@ export class USSDTemplateService {
     return response;
   }
 
-  static wardsPage(
-    wards: Array<{ id: string; name: string }>,
-    lgaName: string,
-    page: number,
-    totalPages: number,
-    hasPrev: boolean,
-    hasNext: boolean
-  ): string {
-    let response = `CON Select your Ward in ${lgaName} (Page ${
-      page + 1
-    }/${totalPages}):\n`;
+  static wardsPage(wards: Array<{ id: string; name: string }>, lgaName: string, page: number, totalPages: number, hasPrev: boolean, hasNext: boolean): string {
+    let response = `CON Select your Ward in ${lgaName} (Page ${page + 1}/${totalPages}):\n`;
 
     wards.forEach((ward, index) => {
       response += `${index + 1}. ${ward.name}\n`;
@@ -153,40 +125,22 @@ export class USSDTemplateService {
 
   // ==================== CONFIRMATION ====================
 
-  static confirmationUpdate(data: {
-    firstName: string;
-    lastName: string;
-    stateName: string;
-    lgaName: string;
-    wardName?: string;
-    language?: Language;
-  }): string {
+  static confirmationUpdate(data: { firstName: string; lastName: string; stateName: string; lgaName: string; wardName?: string; language?: Language }): string {
     return `CON Confirm your update:
             Name: ${data.firstName} ${data.lastName}
             State: ${data.stateName}
             LGA: ${data.lgaName}
-            ${data.wardName ? `Ward: ${data.wardName}\n` : ""}${
-                  data.language ? `Language: ${data.language}\n` : ""
-                }
+            ${data.wardName ? `Ward: ${data.wardName}\n` : ""}${data.language ? `Language: ${data.language}\n` : ""}
             1. Confirm and Update
             2. Cancel`;
   }
 
-  static confirmationRegistration(data: {
-    firstName: string;
-    lastName: string;
-    stateName: string;
-    lgaName: string;
-    wardName?: string;
-    language?: Language;
-  }): string {
+  static confirmationRegistration(data: { firstName: string; lastName: string; stateName: string; lgaName: string; wardName?: string; language?: Language }): string {
     return `CON Confirm your registration:
             Name: ${data.firstName} ${data.lastName}
             State: ${data.stateName}
             LGA: ${data.lgaName}
-            ${data.wardName ? `Ward: ${data.wardName}\n` : ""}${
-                  data.language ? `Language: ${data.language}\n` : ""
-                }
+            ${data.wardName ? `Ward: ${data.wardName}\n` : ""}${data.language ? `Language: ${data.language}\n` : ""}
             1. Confirm and Register
             2. Cancel`;
   }

@@ -1,14 +1,7 @@
 import type { Request, Response } from "express";
 import statusCodes from "http-status";
 import { CitizenService } from "../services/citizen.service.js";
-import type {
-  CitizenFilters,
-  TCitizenListResponse,
-  TCitizenMessageResponse,
-  TCitizenNearbyResponse,
-  TCitizenResponse,
-  TCitizenStatsResponse,
-} from "../types/citizen.types.js";
+import type { CitizenFilters, TCitizenListResponse, TCitizenMessageResponse, TCitizenNearbyResponse, TCitizenResponse, TCitizenStatsResponse } from "../types/citizen.types.js";
 import { asyncHandler } from "../utils/app.utils.js";
 import { AppError } from "../utils/error.util.js";
 
@@ -137,11 +130,7 @@ export class CitizenController {
    */
   static getCitizensNearby = asyncHandler(async (req: Request, res: Response<TCitizenNearbyResponse>) => {
     const { latitude, longitude, radiusKm } = req.query;
-    const citizens = await CitizenService.getCitizensNearby(
-      parseFloat(latitude as string),
-      parseFloat(longitude as string),
-      parseInt(radiusKm as string)
-    );
+    const citizens = await CitizenService.getCitizensNearby(parseFloat(latitude as string), parseFloat(longitude as string), parseInt(radiusKm as string));
 
     res.status(statusCodes.OK).json({
       success: true,
