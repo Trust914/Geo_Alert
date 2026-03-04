@@ -1,4 +1,4 @@
-import { X, AlertTriangle, Loader2 } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
 import clsx from "clsx";
 
 interface ConfirmationModalProps {

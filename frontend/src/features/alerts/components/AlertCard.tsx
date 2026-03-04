@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   AlertTriangle, Cloud, Shield, Flame, Car, Leaf, Zap, MoreHorizontal,
-  Eye, Send, Ban, MapPin, Users, XCircle, CheckCircle2, Loader2,
-  RefreshCw, Calendar, UserCheck
+  Eye, Ban, MapPin, Users, XCircle, CheckCircle2, Loader2,
+   Calendar, UserCheck
 } from "lucide-react";
 import { Card, CardContent } from "../../../components/ui/";
 import { Button } from "../../../components/ui/Button/";
@@ -17,7 +17,7 @@ interface AlertCardProps {
 }
 
 export function AlertCard({ alert }: AlertCardProps) {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [showSendModal, setShowSendModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [twoFactorCode, setTwoFactorCode] = useState("");
@@ -30,7 +30,7 @@ export function AlertCard({ alert }: AlertCardProps) {
   const severityConfig = getSeverityConfig(alert.severity);
   const statusConfig = getStatusConfig(alert.status);
 
-  const showSendButton = alert.status === "DRAFT" || alert.status === "FAILED";
+  // const showSendButton = alert.status === "DRAFT" || alert.status === "FAILED";
   const isActiveAlert = alert.status === "PENDING" || alert.status === "SENT";
 
   const handleSend = (e: React.MouseEvent) => {

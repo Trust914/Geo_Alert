@@ -1,4 +1,3 @@
-// src/components/CreateAlert/AdminAreaSelector.tsx
 import { useState } from "react";
 import { TargetType, type AlertTarget } from "../../types/alert.types";
 import { useLGAs, useStates, useWards } from "../../hooks/useLocation";
@@ -12,7 +11,7 @@ export function AdminAreaSelector({ onAddTarget }: AdminAreaSelectorProps) {
   const [selectedLga, setSelectedLga] = useState<string>("");
   const [selectedWard, setSelectedWard] = useState<string>("");
 
-  const { data: states, isLoading: loadingStates } = useStates();
+  const { data: states, } = useStates();
   const { data: lgas, isLoading: loadingLgas } = useLGAs(selectedState);
   const { data: wards, isLoading: loadingWards } = useWards(selectedLga);
 

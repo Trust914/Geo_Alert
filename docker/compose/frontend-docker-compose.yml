@@ -1,0 +1,67 @@
+version: "3.8"
+
+# ─────────────────────────────────────────────────────────────
+# GeoAlert — Frontend-only Compose (Staging)
+#
+# The frontend nginx container proxies /api/* to the backend
+# container internally via a shared Docker network. The browser
+# only ever talks to nginx on port 8080 — no CORS issues, no
+# container names or backend ports exposed to the client.
+#
+# Prerequisite: backend must be running first so its network exists:
+#   docker compose -f docker/compose/docker-compose.yml --profile staging up -d
+#
+# Usage:
+#   docker compose -f docker/compose/docker-compose.frontend-staging.yml up --build
+#
+# Env vars — create docker/compose/.env.frontend-staging:
+#   VITE_MAPBOX_PUBLIC_TOKEN=pk.eyJ1...
+# ─────────────────────────────────────────────────────────────
+
+services:
+  frontend-staging:
+    container_name: geoalert-frontend-staging
+    build:
+      context: ../..
+      dockerfile: docker/frontend/Dockerfile
+      target: staging
+      args:
+        VITE_APP_ENV: staging
+        VITE_APP_NAME: "GeoAlert System"
+        # Build-time placeholder — real value injected at runtime via
+        # window.__ENV__ so no rebuild is needed when the URL changes
+        VITE_API_BASE_URL: "/api/v1"
+        VITE_MAPBOX_PUBLIC_TOKEN: ${VITE_MAPBOX_PUBLIC_TOKEN:-}
+    ports:
+      - "8080:80"
+    networks:
+      # Join the backend network so nginx can reach geoalert-api-staging
+      # by container name. This network is created by docker-compose.yml.
+      - geoalert_backend
+    environment:
+      # nginx reverse proxy target — must match the backend container name
+      NGINX_API_HOST: geoalert-api-staging
+      # Runtime VITE_ vars written to window.__ENV__ by entrypoint.sh
+      VITE_API_BASE_URL: "/api/v1"
+      VITE_APP_NAME: "GeoAlert System"
+      VITE_APP_ENV: staging
+      VITE_MAPBOX_PUBLIC_TOKEN: ${VITE_MAPBOX_PUBLIC_TOKEN:-}
+    depends_on: []   # no hard depends — backend network must exist but
+                     # Docker will error clearly if it does not
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:80/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+networks:
+  geoalert_backend:
+    # Reference the network created by docker-compose.yml (not owned here)
+    external: true
+    # Docker Compose prefixes network names with the project name.
+    # The backend compose project name defaults to the directory name
+    # ("compose"), producing: compose_backend
+    # Override with COMPOSE_PROJECT_NAME or use the name below.
+    name: compose_backend

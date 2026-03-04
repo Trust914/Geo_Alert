@@ -13,7 +13,7 @@ interface AgencyQuickActionsProps {
 
 export function AgencyQuickActions({
   agencyId,
-  agencyName,
+  // agencyName,
   agencyStatus,
   canEdit,
   isSuperAdmin,
