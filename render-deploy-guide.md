@@ -37,8 +37,6 @@ grep "\.env" frontend/.gitignore
    | **Runtime** | `Docker` |
    | **Dockerfile Path** | `docker/frontend/Dockerfile` |
    | **Docker Build Context** | `.` (repo root) |
-   | **Docker Target Stage** | `production` |
-
 5. Scroll to **Environment Variables** and add:
 
    | Key | Value |
@@ -49,6 +47,8 @@ grep "\.env" frontend/.gitignore
    | `VITE_MAPBOX_PUBLIC_TOKEN` | `your mapbox token` |
 
    > `PORT` is automatically injected by Render — do NOT set it manually.
+
+   > **Note on Docker Target Stage**: Render's UI has no "Docker Target Stage" field. You don't need it. Render builds the last stage in the Dockerfile by default — which is `production`. Docker's BuildKit is smart enough to build `builder`, skip `staging`, and output `production` automatically. Just set the Dockerfile Path and Build Context correctly and move on.
 
 6. Click **Create Web Service**
 
@@ -61,18 +61,16 @@ The first build takes 3–5 minutes. You can watch the build logs in real time o
 ### 2.1 Add Domain on Render
 1. Go to your web service → **Settings → Custom Domains**
 2. Click **Add Custom Domain**
-3. Enter `geoalert.xyz`
-4. Optionally add `www.geoalert.xyz` as a second entry
-5. Render will display the DNS records you need — copy them
+3. Enter `secure.geoalert.xyz`
+4. Render will display the DNS record you need — copy it
 
 ### 2.2 Add DNS Records on GoDaddy
 1. Go to **GoDaddy → DNS Management** for `geoalert.xyz`
-2. Add the records Render gave you. Your full DNS layout will be:
+2. Add the records. Your full DNS layout will be:
 
    | Type | Name | Value | TTL |
    |------|------|-------|-----|
-   | A | `@` | `[Render IP from dashboard]` | 600 |
-   | CNAME | `www` | `geoalert-frontend.onrender.com` | 600 |
+   | CNAME | `secure` | `geoalert-frontend.onrender.com` | 600 |
    | A | `api` | `[Your EC2 Elastic IP]` | 600 |
 
 3. Save and wait 10–15 minutes for propagation
@@ -82,7 +80,7 @@ Render automatically provisions a Let's Encrypt SSL certificate once DNS propaga
 
 Verify:
 ```bash
-curl https://geoalert.xyz
+curl https://secure.geoalert.xyz
 # Should return your frontend HTML
 ```
 
@@ -95,10 +93,10 @@ curl https://geoalert.xyz
 curl https://api.geoalert.xyz/api/v1/health
 
 # Frontend
-curl https://geoalert.xyz
+curl https://secure.geoalert.xyz
 ```
 
-Open `https://geoalert.xyz` in a browser and confirm the app loads and API calls succeed.
+Open `https://secure.geoalert.xyz` in a browser and confirm the app loads and API calls succeed.
 
 ---
 
@@ -126,10 +124,8 @@ Render handles SSL automatically.
 
 | Domain | Points To | Purpose |
 |--------|-----------|---------|
-| `geoalert.xyz` | Render | Main frontend app |
-| `www.geoalert.xyz` | Render | www redirect |
+| `secure.geoalert.xyz` | Render | Frontend app |
 | `api.geoalert.xyz` | EC2 Elastic IP | Backend API |
-| `secure.geoalert.xyz` | Render | Any additional subdomain |
 
 ---
 
