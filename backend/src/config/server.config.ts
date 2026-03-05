@@ -22,10 +22,13 @@ const REFRESH_TOKEN_EXPIRY_DAYS = Number(checkIfDefined(getEnvVariable("REFRESH_
 const LOCALHOST_DEV = checkIfDefined(getEnvVariable("LOCALHOST_DEV"), "LOCALHOST_DEV");
 const LOCALHOST_PROD = checkIfDefined(getEnvVariable("LOCALHOST_PROD"), "LOCALHOST_PROD");
 const LOCALHOST = chooseEnvValue(LOCALHOST_DEV, LOCALHOST_PROD);
+
 const FRONT_END_DOMAIN_DEV = checkIfDefined(getEnvVariable("FRONT_END_DOMAIN_DEV"), "FRONT_END_DOMAIN_DEV");
-const FRONT_END_DOMAIN_DOCKER = checkIfDefined(getEnvVariable("FRONT_END_DOMAIN_DOCKER"), "FRONT_END_DOMAIN_DOCKER");
-const FRONT_END_DOMAIN = chooseEnvValue(FRONT_END_DOMAIN_DEV, FRONT_END_DOMAIN_DOCKER);
-const CORS_ALLOWED_URLS = [`http://${LOCALHOST}:${PORT}`, FRONT_END_DOMAIN_DEV, FRONT_END_DOMAIN_DOCKER];
+const FRONT_END_DOMAIN_STAGING = checkIfDefined(getEnvVariable("FRONT_END_DOMAIN_STAGING"), "FRONT_END_DOMAIN_STAGING");
+const FRONT_END_DOMAIN_PROD = checkIfDefined(getEnvVariable("FRONT_END_DOMAIN_PROD"), "FRONT_END_DOMAIN_PROD");
+// const FRONT_END_DOMAIN = chooseEnvValue(FRONT_END_DOMAIN_DEV, FRONT_END_DOMAIN_STAGING, FRONT_END_DOMAIN_PROD);
+const CORS_ALLOWED_URLS = [`http://${LOCALHOST}:${PORT}`, FRONT_END_DOMAIN_DEV, FRONT_END_DOMAIN_STAGING, FRONT_END_DOMAIN_PROD];
+
 const ENDPOINT_LIMIT = Number(getEnvVariable("ENDPOINT_LIMIT"));
 const ENDPOINT_LIMIT_TIME = Number(getEnvVariable("ENDPOINT_LIMIT_TIME"));
 const RATELIMITER_REDIS_MAX_POINTS = Number(getEnvVariable("RATELIMITER_REDIS_MAX_POINTS"));
@@ -74,7 +77,9 @@ export const serverConfig = {
 
   cors: {
     allowedUrls: CORS_ALLOWED_URLS,
-    frontendDomain: FRONT_END_DOMAIN,
+    frontendDomainDev: FRONT_END_DOMAIN_DEV,
+    frontendDomainStaging: FRONT_END_DOMAIN_STAGING,
+    frontendDomainProd: FRONT_END_DOMAIN_PROD,
     localhost: LOCALHOST,
   },
 
