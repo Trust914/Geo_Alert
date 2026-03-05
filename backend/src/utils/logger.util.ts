@@ -14,7 +14,7 @@ export const createDir = (dirPath: string) => {
 
   const absolutePath = path.join(process.cwd(), dirPath);
 
-  if (!fs.existsSync(dirPath)) {
+  if (!fs.existsSync(absolutePath)) {
     try {
       fs.mkdirSync(absolutePath, { recursive: true });
       logDirMem = absolutePath;
