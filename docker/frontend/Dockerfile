@@ -37,8 +37,14 @@ RUN chmod +x /entrypoint.sh
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Set permissions for Render/Cloud security
-RUN chown -R geoalert:geoalert /usr/share/nginx/html /var/cache/nginx /var/log/nginx /etc/nginx/conf.d && \
-    touch /var/run/nginx.pid && chown geoalert:geoalert /var/run/nginx.pid
+RUN chown -R geoalert:geoalert \
+    /usr/share/nginx/html \
+    /var/cache/nginx \
+    /var/log/nginx \
+    /etc/nginx/conf.d \
+    /var/run && \
+    touch /var/run/nginx.pid && \
+    chown geoalert:geoalert /var/run/nginx.pid
 
 USER geoalert
 EXPOSE 80
