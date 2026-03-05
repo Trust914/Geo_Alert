@@ -480,6 +480,29 @@ Add:
 0 3 * * * cd ~/geoalert-backend/Geo_Alert/docker/compose && docker compose -f api-docker-compose.yml --profile production run --rm certbot renew --quiet && docker compose -f api-docker-compose.yml --profile production exec nginx nginx -s reload
 ```
 
+**Verify the cron job was saved:**
+```bash
+crontab -l
+# Should print the line you just added
+```
+
+**Test renewal setup** (run from `docker/compose` directory):
+```bash
+cd ~/geoalert-backend/Geo_Alert/docker/compose
+
+docker compose -f api-docker-compose.yml --profile production run --rm certbot certificates
+```
+
+You should see:
+```
+Found the following certs:
+  Certificate Name: api.geoalert.xyz
+  Expiry Date: 2026-06-02
+  Certificate Path: /etc/letsencrypt/live/api.geoalert.xyz/fullchain.pem
+```
+
+> ⚠️ Do NOT use `--dry-run` to test renewal. It produces a false `No such authorization` error because the dry-run staging server doesn't know about your real certificate. This is a known Let's Encrypt quirk with the webroot method and does not mean your actual renewal will fail. Use `certbot certificates` instead to confirm your setup is correct.
+
 ---
 
 ## Quick Reference
