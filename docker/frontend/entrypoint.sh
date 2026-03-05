@@ -15,18 +15,16 @@ ENV_JS=/usr/share/nginx/html/__env.js
 NGINX_CONF=/etc/nginx/conf.d/app.conf
 
 # ── 1. Nginx Config Substitution ─────────────────────────────
-# Always substitute NGINX_PORT (required for Render's dynamic $PORT).
-# Also substitute NGINX_API_HOST if provided (staging proxy).
+# IMPORTANT: Always explicitly list the variables to substitute.
+# Using envsubst without a variable list will replace ALL ${VAR}
+# patterns — including nginx's own variables like $host, $remote_addr
+# — which causes nginx to crash with "unknown variable" errors.
 export NGINX_PORT="${PORT:-80}"
+export NGINX_API_HOST="${NGINX_API_HOST:-localhost}"
 
-if [ -n "$NGINX_API_HOST" ]; then
-  # Staging: substitute both PORT and API host
-  envsubst '${NGINX_PORT} ${NGINX_API_HOST}' < "$NGINX_CONF" > /tmp/app.conf
-else
-  # Production: substitute PORT only
-  envsubst '${NGINX_PORT}' < "$NGINX_CONF" > /tmp/app.conf
-fi
-
+# Always substitute only our known variables — never let envsubst
+# touch nginx's internal variables
+envsubst '${NGINX_PORT} ${NGINX_API_HOST}' < "$NGINX_CONF" > /tmp/app.conf
 mv /tmp/app.conf "$NGINX_CONF"
 
 # ── 2. Runtime Env File ───────────────────────────────────────
@@ -37,7 +35,8 @@ window.__ENV__ = {
   VITE_API_BASE_URL: "${VITE_API_BASE_URL}",
   VITE_APP_NAME: "${VITE_APP_NAME:-GeoAlert System}",
   VITE_APP_ENV: "${VITE_APP_ENV:-production}",
-  VITE_MAPBOX_PUBLIC_TOKEN: "${VITE_MAPBOX_PUBLIC_TOKEN}"
+  VITE_MAPBOX_PUBLIC_TOKEN: "${VITE_MAPBOX_PUBLIC_TOKEN},"
+  VITE_MAPBOX_SECRET_TOKEN: "${VITE_MAPBOX_SECRET_TOKEN},"
 };
 EOF
 
