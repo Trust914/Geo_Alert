@@ -34,7 +34,7 @@ COPY ./src/utils/ ./src/utils/
 
 # Generate Prisma client
 # Supply dummy values to bypass strict validation in database.config.ts during build
-RUN NODE_ENV=development \
+RUN APP_ENV=development \
     PG_DB_USER=dummy \
     PG_DB_DEV_HOST=dummy \
     PG_DB_DOCKER_HOST=dummy \

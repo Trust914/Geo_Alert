@@ -2,7 +2,7 @@ import { readFileSync } from "fs";
 import statusCodes from "http-status";
 import { AppError } from "./error.util.js";
 
-const nodeEnv = process.env.NODE_ENV;
+const nodeEnv = process.env.APP_ENV;
 
 export const getEnvVariable = (key: string): string | undefined => {
   const value = process.env[key];
@@ -59,11 +59,12 @@ export const getSecret = (secretName: string, envKey: string): string => {
 };
 
 export const chooseEnvValue = (devValue: string, prodValue: string): string => {
-  const nodeEnv = getEnvVariable("NODE_ENV");
+  const nodeEnv = getEnvVariable("APP_ENV");
   return nodeEnv === "development" ? devValue : prodValue;
 };
 
 export const checkIfDefined = <T>(val: T | undefined, name: string): T => {
+  const nodeEnv = getEnvVariable("APP_ENV");
   if (val === undefined || val == null) {
     throw new AppError({
       name: "ConfigurationError",

@@ -60,10 +60,10 @@ const consoleFormat = format.combine(
   format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
   format.printf(({ level, message, timestamp, stack, ...meta }) => {
     let log = `${timestamp} [${level}]: ${message}`;
-    if (process.env.NODE_ENV === "development" && Object.keys(meta).length) {
+    if (process.env.APP_ENV === "development" && Object.keys(meta).length) {
       log += ` ${JSON.stringify(meta, null, 0)}`;
     }
-    if (stack && process.env.NODE_ENV === "development") {
+    if (stack && process.env.APP_ENV === "development") {
       log += `\n${stack}`;
     }
     return log;
@@ -106,10 +106,10 @@ class Logger {
     });
 
     this.logger = createLogger({
-      level: process.env.NODE_ENV === "development" ? LogLevel.debug : LogLevel.info,
+      level: process.env.APP_ENV === "development" ? LogLevel.debug : LogLevel.info,
       levels: logLevels,
       exitOnError: false,
-      transports: process.env.NODE_ENV === "development" ? [consoleTransport, combinedFileTransport] : [errorFileTransport, combinedFileTransport, consoleTransport],
+      transports: process.env.APP_ENV === "development" ? [consoleTransport, combinedFileTransport] : [errorFileTransport, combinedFileTransport, consoleTransport],
     });
 
     this.batchLogger = createLogger({

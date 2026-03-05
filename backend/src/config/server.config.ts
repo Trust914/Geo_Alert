@@ -5,10 +5,10 @@ import { checkIfDefined, chooseEnvValue, getEnvVariable, getSecret } from "../ut
 const API_NAME = checkIfDefined(getEnvVariable("API_NAME"), "API_NAME");
 const APP_VERSION = checkIfDefined(getEnvVariable("APP_VERSION"), "APP_VERSION");
 const PORT = checkIfDefined(getEnvVariable("PORT"), "PORT");
-const NODE_ENV = checkIfDefined(getEnvVariable("NODE_ENV"), "NODE_ENV");
-const IS_DEV_ENV = NODE_ENV === "development";
-const IS_STAGING_ENV = NODE_ENV === "staging";
-const IS_PROD_ENV = NODE_ENV === "production";
+const APP_ENV = checkIfDefined(getEnvVariable("APP_ENV"), "APP_ENV");
+const IS_DEV_ENV = APP_ENV === "development";
+const IS_STAGING_ENV = APP_ENV === "staging";
+const IS_PROD_ENV = APP_ENV === "production";
 const HEALTH_MIN_RESPONSE_TIME = Number(checkIfDefined(getEnvVariable("HEALTH_MIN_RESPONSE_TIME"), "HEALTH_MIN_RESPONSE_TIME"));
 const PAGINATION_DEFAULT_LIMIT = Number(checkIfDefined(getEnvVariable("PAGINATION_DEFAULT_LIMIT"), "PAGINATION_DEFAULT_LIMIT"));
 const DEFAULT_SORT_BY = checkIfDefined(getEnvVariable("DEFAULT_SORT_BY"), "DEFAULT_SORT_BY");
@@ -66,7 +66,7 @@ export const serverConfig = {
     name: API_NAME,
     version: APP_VERSION,
     port: PORT,
-    environment: NODE_ENV,
+    environment: APP_ENV,
     isDev: IS_DEV_ENV,
     isStaging: IS_STAGING_ENV,
     isProd: IS_PROD_ENV,

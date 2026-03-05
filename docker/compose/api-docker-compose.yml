@@ -25,10 +25,10 @@ version: "3.8"
 #   seed          → one-off container to run database seeds
 #
 # Usage:
-#   Dev (infra only):   docker compose -f docker/compose/docker-compose.yml up
-#   Staging:            docker compose -f docker/compose/docker-compose.yml --profile staging up --build -d
-#   Production:         docker compose -f docker/compose/docker-compose.yml --profile production up -d
-#   Run Seeds:          APP_ENV=staging docker compose -f docker/compose/docker-compose.yml --profile staging --profile seed run --rm db-seeder
+#   Dev (infra only):   docker compose -f docker/compose/api-docker-compose.yml up
+#   Staging:            docker compose -f docker/compose/api-docker-compose.yml --profile staging up --build -d
+#   Production:         docker compose -f docker/compose/api-docker-compose.yml --profile production up -d
+#   Run Seeds:          APP_ENV=staging docker compose -f docker/compose/api-docker-compose.yml --profile staging --profile seed run --rm db-seeder
 # ─────────────────────────────────────────────────────────────
 
 # ── Shared config ─────────────────────────────────────────────
@@ -262,6 +262,33 @@ services:
       echo 'Running Geo Seeds...' && npm run docker.seed.geo &&
       echo 'Running Admin Seed...' && npm run docker.seed.admin
       "
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: geoalert-nginx
+    profiles:
+      - production
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot
+    # depends_on:
+    #   - api-production
+    networks:
+      - backend
+
+  certbot:
+    image: certbot/certbot
+    container_name: geoalert-certbot
+    profiles:
+      - production
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
 
 # ── Secrets ───────────────────────────────────────────────────
 secrets:
