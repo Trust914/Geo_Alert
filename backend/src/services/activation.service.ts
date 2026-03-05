@@ -63,7 +63,7 @@ export class ActivationService {
     );
 
     // Build activation URL with token
-    const activationUrl = `${serverConfig.cors.frontendDomain}/activate-account?token=${activationToken}&userId=${userId}`;
+    const activationUrl = `${serverConfig.cors.frontendDoman}/activate-account?token=${activationToken}&userId=${userId}`;
 
     serverConfig.app.isDev && logger.debug(`Generated activation URL: ${activationUrl}`);
 
