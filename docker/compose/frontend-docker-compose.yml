@@ -1,0 +1,60 @@
+version: "3.8"
+
+# ─────────────────────────────────────────────────────────────
+# GeoAlert — Frontend Staging Compose
+#
+# Runs the frontend nginx container locally against the backend
+# staging stack. The browser only talks to nginx on port 8080 —
+# nginx proxies /api/* to the backend container internally.
+#
+# Prerequisites:
+#   1. Backend must be running:
+#      APP_ENV=staging docker compose -f docker/compose/api-docker-compose.yml \
+#        --profile staging up -d
+#
+# Usage:
+#   docker compose -f docker/compose/docker-compose.frontend-staging.yml \
+#     up --build
+#
+# Env vars — set in your shell or a .env file:
+#   VITE_MAPBOX_PUBLIC_TOKEN=pk.eyJ1...
+# ─────────────────────────────────────────────────────────────
+
+services:
+  frontend-staging:
+    container_name: geoalert-frontend-staging
+    build:
+      context: ../..
+      dockerfile: docker/frontend/Dockerfile
+      target: staging
+      args:
+        VITE_API_BASE_URL: "/api/v1"
+        VITE_APP_NAME: "GeoAlert System"
+        VITE_APP_ENV: staging
+        VITE_MAPBOX_PUBLIC_TOKEN: ${VITE_MAPBOX_PUBLIC_TOKEN:-}
+    ports:
+      - "8080:80"
+    networks:
+      # Join the backend network so nginx can reach the API
+      # container by name. Created by api-docker-compose.yml.
+      - geoalert_backend
+    environment:
+      # Nginx reverse proxy target — must match backend container name
+      NGINX_API_HOST: geoalert-api-staging
+      # Runtime vars written to window.__ENV__ by entrypoint.sh
+      VITE_API_BASE_URL: "/api/v1"
+      VITE_APP_NAME: "GeoAlert System"
+      VITE_APP_ENV: staging
+      VITE_MAPBOX_PUBLIC_TOKEN: ${VITE_MAPBOX_PUBLIC_TOKEN:-}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:80/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+networks:
+  geoalert_backend:
+    external: true
+    name: compose_backend

@@ -1,0 +1,8 @@
+-- CreateEnum
+CREATE TYPE "MessageType" AS ENUM ('ALERT', 'UPDATE', 'CANCEL', 'ACKNOWLEDGE', 'ERROR');
+
+-- CreateEnum
+CREATE TYPE "AlertScope" AS ENUM ('PUBLIC', 'PRIVATE', 'RESTRICTED');
+
+-- CreateEnum
+CREATE TYPE "AlertCertainty" AS ENUM ('OBSERVED', 'LIKELY', 'POSSIBLE', 'UNLIKELY', 'UNKNOWN');

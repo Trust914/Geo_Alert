@@ -3,10 +3,11 @@ node_modules
 !.env.example
 
 src/prisma/prisma/generated
-src/prisma/migrations
+#src/prisma/migrations
 src/seed/geographic-raw-data-from-energydata_info
 logs
 package-lock.json
 *secret.json
 dist/
 secrets/
+coverage/

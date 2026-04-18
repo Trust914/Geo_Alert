@@ -129,7 +129,7 @@ export function getUserStatusBadge(user: IUser): {
 /**
  * Check if user can perform action
  */
-export function canPerformAction(currentUserRole: UserRole, targetUser: IUser, action: "edit" | "deactivate" | "delete"): boolean {
+export function canPerformAction(currentUserRole: UserRole, action: "edit" | "deactivate" | "delete"): boolean {
   // Only admins can perform these actions
   if (currentUserRole !== UserRole.ADMIN && currentUserRole !== UserRole.SUPER_ADMIN) {
     return false;
@@ -238,7 +238,7 @@ export const canViewAgency = (user: ISafeUser, agencyId: string): boolean => {
 };
 
 // Check if user can edit agency
-export const canEditAgency = (user: ISafeUser, agencyId: string): boolean => {
+export const canEditAgency = (user: ISafeUser): boolean => {
   // Only super admin can edit agencies
   return isSuperAdmin(user);
 };

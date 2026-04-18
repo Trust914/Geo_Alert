@@ -20,7 +20,7 @@ export function useVerify2FA() {
   return useMutation({
     mutationFn: (request: TwoFactorVerifyRequest) => bffService.verify2FA(request),
     onSuccess: (data) => {
-      setAuth(data.user, data.accessToken);
+      setAuth(data.user);
 
       // Small delay to show success state
       setTimeout(() => {

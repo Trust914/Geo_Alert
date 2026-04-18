@@ -8,10 +8,8 @@ import { AppError } from "./error.util.js";
 import { logger } from "./logger.util.js";
 
 export const hideSensitiveKeys = (originObj: Record<string, string | number>, sensitiveKeys: Array<string>): Record<string, string | number> | null => {
-  const keys = Object.keys(originObj);
-
-  // Return null if object is empty or undefined
-  if (!originObj || keys.length === 0) {
+  // Return null if object is undefined or empty
+  if (!originObj || Object.keys(originObj).length === 0) {
     logger.warn("No origin Object received in hideSensitiveKeys");
     return null;
   }

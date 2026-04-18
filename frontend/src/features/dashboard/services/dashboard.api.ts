@@ -13,7 +13,7 @@ export const dashboardApi = {
   getDashboardStats: async (): Promise<{ success: boolean; data: IDashboardStats }> => {
     try {
       // Fetch data from existing endpoints in parallel
-      const [agencyStats, alertsResponse, usersResponse] = await Promise.all([
+      const [agencyStats, alertsResponse] = await Promise.all([
         bffAxiosInstance.get(API_ENDPOINTS.AGENCIES.STATS).catch(() => ({ data: { data: null } })),
         bffAxiosInstance.get("/alert?currentPage=1&limit=1").catch(() => ({ data: { pagination: { total: 0 } } })),
         bffAxiosInstance.get("/user/agency/current?currentPage=1&limit=1").catch(() => ({ data: { pagination: { total: 0 } } })),

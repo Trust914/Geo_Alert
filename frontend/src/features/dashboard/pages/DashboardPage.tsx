@@ -11,7 +11,7 @@ export default function DashboardPage() {
 
   // Fetch dashboard data
   const { data: statsData, isLoading: statsLoading, error: statsError, refetch: refetchStats } = useDashboardStats();
-  const { data: alertsData, isLoading: alertsLoading, error: alertsError } = useRecentAlerts(5);
+  const { data: alertsData, isLoading: alertsLoading } = useRecentAlerts(5);
   const { data: regionsData, isLoading: regionsLoading } = useActiveRegions();
   const { data: activityData, isLoading: activityLoading } = useActivityLog(10);
 

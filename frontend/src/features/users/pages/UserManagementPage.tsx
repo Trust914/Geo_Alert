@@ -1,7 +1,6 @@
-// src/features/users/pages/UserManagementPage.tsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { UserPlus, Users, AlertTriangle, Shield } from "lucide-react";
+import { UserPlus, Users, Shield } from "lucide-react";
 
 import {
   useAllUsers, // NEW: For super admins

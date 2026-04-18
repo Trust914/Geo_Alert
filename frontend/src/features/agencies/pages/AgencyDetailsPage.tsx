@@ -31,7 +31,7 @@ export default function AgencyDetailsPage() {
 
   // Permission checks
   const hasViewPermission = currentUser && agencyId ? canViewAgency(currentUser as ISafeUser, agencyId) : false;
-  const canEdit = currentUser && agencyId ? canEditAgency(currentUser as ISafeUser, agencyId) : false;
+  const canEdit = currentUser && agencyId ? canEditAgency(currentUser as ISafeUser) : false;
   const isSuperAdminUser = currentUser ? isSuperAdmin(currentUser as ISafeUser) : false;
 
   const handleDelete = (twoFactorCode: string) => {

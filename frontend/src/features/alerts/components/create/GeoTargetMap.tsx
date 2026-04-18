@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import Map, { NavigationControl, ScaleControl } from "react-map-gl";
 import * as turf from "@turf/turf"; // Ensure you have this: npm install @turf/turf
 import { TargetType, type AlertTarget } from "../../types/alert.types";

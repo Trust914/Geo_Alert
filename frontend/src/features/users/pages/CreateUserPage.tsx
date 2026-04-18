@@ -1,4 +1,3 @@
-// src/features/users/pages/CreateUserPage.tsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserPlus, Mail, User as UserIcon, Shield, ArrowLeft, AlertCircle, Building2 } from "lucide-react";
@@ -12,7 +11,7 @@ import { Button } from "../../../components/ui/Button/Button";
 import { Card } from "../../../components/ui/Card/Card";
 import { useBFF } from "../../bff_auth/context";
 import { RoleSelector } from "../components/RoleSelector";
-import type { IAgency, IAgencyOption } from "../../agencies/types";
+import type {  IAgencyOption } from "../../agencies/types";
 
 export default function CreateUserPage() {
   const navigate = useNavigate();

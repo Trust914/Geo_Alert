@@ -11,13 +11,13 @@ async function main() {
     if (arg === "all" || arg === "geo") {
       logger.info("📊 Step 1: Processing PGeospatial Data (States/LGAs/Wards)...");
       // We import the logic or execute the script
-      execSync("npx tsx --env-file=.env ./src/seed/geoSpatial.ts all", { stdio: "inherit" });
+      execSync("npx tsx ./src/seed/geoSpatial.ts all", { stdio: "inherit" });
     }
 
     if (arg === "all" || arg === "population") {
       logger.info("🗺️ Step 2: Processing Population Data...");
       // This calls  goeSpatial.ts logic
-      execSync("npx tsx --env-file=.env ./src/seed/population.ts", { stdio: "inherit" });
+      execSync("npx tsx ./src/seed/population.ts", { stdio: "inherit" });
     }
 
     logger.info("✅ Seeding sequence finished successfully.");
