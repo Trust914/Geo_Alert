@@ -10,3 +10,4 @@ package-lock.json
 *secret.json
 dist/
 secrets/
+coverage/
