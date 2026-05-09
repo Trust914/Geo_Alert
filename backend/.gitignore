@@ -11,3 +11,4 @@ package-lock.json
 dist/
 secrets/
 coverage/
+*.pem
