@@ -85,6 +85,10 @@ export interface IBFFLoginResponse {
       lastName: string;
       role: UserRole;
       agencyId: string;
+      agency?: {
+        id: string;
+        name: string;
+      };
       mustChangePassword: boolean;
       isTwoFactorEnabled: boolean;
       twoFactorMethod?: TwoFactorMethod;
