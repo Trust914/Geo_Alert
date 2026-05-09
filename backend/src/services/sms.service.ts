@@ -37,10 +37,14 @@ export class SMSService {
     }
 
     try {
+      // Africa's Talking sandbox rejects any 'from' value,so must be omitted entirely.
+      const isSandbox = AT_CONFIG.username === "sandbox";
+      const senderId = isSandbox ? undefined : (from || AT_CONFIG.shortCode);
+
       logger.debug("Sending SMS via Africa's Talking", {
         recipients: validRecipients,
         messageLength: message.length,
-        from: from || AT_CONFIG.senderId,
+        from: senderId ?? "(sandbox — omitted)",
         enqueue,
         username: AT_CONFIG.username,
       });
@@ -48,7 +52,7 @@ export class SMSService {
       const response = await atSMS.send({
         to: validRecipients,
         message: message.substring(0, 918),
-        from: from || AT_CONFIG.shortCode,
+        ...(senderId !== undefined && { from: senderId }),
         enqueue: enqueue,
       });
 
@@ -147,10 +151,14 @@ export class SMSService {
 
     try {
       // Use AT's built-in bulk capability
+      // Omit 'from' in sandbox mode — Africa's Talking sandbox rejects sender IDs.
+      const isSandboxBatch = AT_CONFIG.username === "sandbox";
+      const batchSenderId = isSandboxBatch ? undefined : AT_CONFIG.shortCode;
+
       const response = await atSMS.send({
         to: validNumbers,
         message: cleanMessage,
-        from: AT_CONFIG.shortCode,
+        ...(batchSenderId !== undefined && { from: batchSenderId }),
         enqueue: true,
       });
 
