@@ -1306,6 +1306,7 @@ export class BFFService {
           lastName: user.lastName,
           role: user.role,
           agencyId: user.agencyId,
+          agency: user.agency,          // required for isSuperAdmin() on the frontend
           mustChangePassword: user.mustChangePassword,
           isTwoFactorEnabled: user.isTwoFactorEnabled,
           twoFactorMethod: user.twoFactorMethod as TwoFactorMethod,
