@@ -1,23 +1,19 @@
 import { Navigate } from "react-router-dom";
 import { isSuperAdmin } from "../../users/utils";
 import AgencyManagementPage from "./AgencyManagementPage";
-import AgencyDetailsPage from "./AgencyDetailsPage";
+import AgencyAdminViewPage from "./AgencyAdminViewPage";
 import { Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
 import type { ISafeUser } from "../../users/types";
 import { useBFF } from "../../bff_auth/context";
 import { UserRole } from "../../../types";
 
 export default function AgencyRouteHandler() {
-  const { user } = useBFF();
-  const [isChecking, setIsChecking] = useState(true);
+  // isLoading is true until the BFF /me response has fully settled,
+  // meaning user.agency.type / name / jurisdictionLevel are guaranteed
+  // to be present. Never use a fixed timer — it races against the network.
+  const { user, isLoading } = useBFF();
 
-  useEffect(() => {
-    const timer = setTimeout(() => setIsChecking(false), 100);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (isChecking || !user) {
+  if (isLoading || !user) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
@@ -36,9 +32,9 @@ export default function AgencyRouteHandler() {
   }
 
   if (isAgencyAdmin) {
-    // Render inline instead of redirecting — keeps the URL at /agencies
-    // and avoids the RoleGuard re-evaluating the /:agencyId route
-    return <AgencyDetailsPage />;
+    // AgencyAdminViewPage reads user.agencyId directly from BFF context,
+    // so it works correctly at /agencies without a :agencyId URL param.
+    return <AgencyAdminViewPage />;
   }
 
   return <Navigate to="/dashboard" replace />;

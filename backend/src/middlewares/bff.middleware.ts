@@ -86,6 +86,11 @@ export const bffAuthenticate = asyncHandler(async (req: Request, res: Response, 
     throw AppError.forbidden("Account is deactivated. Please contact your administrator.", "BFFMiddleware");
   }
 
+  // Guard: user.agency is null when agencyId is unset on the record (data integrity issue)
+  if (!user.agency) {
+    throw AppError.forbidden("Your account is not associated with any agency. Please contact support.", "BFFMiddleware");
+  }
+
   if (user.agency.status !== "ACTIVE") {
     throw AppError.forbidden("Your agency is currently inactive. Please contact support.", "BFFMiddleware");
   }
